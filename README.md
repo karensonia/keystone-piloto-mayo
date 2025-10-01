@@ -1,73 +1,133 @@
-# Welcome to your Lovable project
+# Keystone - El Soundtrack de tu Noche
 
-## Project info
+## Descripción del Proyecto
 
-**URL**: https://lovable.dev/projects/b664a66c-adef-4850-852b-ecb98e6286ca
+Demo de plataforma musical interactiva desarrollada para presentación universitaria. Keystone permite a grupos de amigos participar activamente en la experiencia musical de locales nocturnos mediante microtransacciones, garantizando música auténtica y apoyo directo a los artistas.
 
-## How can I edit this code?
+## Propuesta de Valor
 
-There are several ways of editing your application.
+- **Música variada y auténtica**: Conexión directa con tu energía y estilo musical
+- **Experiencia confiable**: Lo que ves es lo que obtienes en el local
+- **Momentos memorables**: Cada salida se transforma en un mini-evento
+- **Apoyo a artistas**: Sistema transparente de retribución justa
 
-**Use Lovable**
+## Features Implementados
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/b664a66c-adef-4850-852b-ecb98e6286ca) and start prompting.
+### 1. Catálogo Musical Navegable
+- Listado de canciones y artistas disponibles
+- Filtrado por género y popularidad
+- Vista previa de información del artista
 
-Changes made via Lovable will be committed automatically to this repo.
+### 2. Sistema de Selección
+- Agregar canciones a la playlist del local
+- Primera canción gratis para usuarios invitados
+- Confirmación visual del contenido elegido
 
-**Use your preferred IDE**
+### 3. Microtransacciones Simuladas
+- Sistema de pago de $500 por canción
+- Mensaje claro sobre uso legal y apoyo al artista
+- Procesamiento instantáneo
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 4. Comprobante Digital
+- Recibo con ID de transacción único
+- Información completa: local, artista, monto, fecha
+- Opción de visualización expandible
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 5. Información del Local en Tiempo Real
+- Contador de visitantes actuales
+- Cantidad de canciones en fila
+- Tiempo estimado de reproducción
 
-Follow these steps:
+## Flujos de Usuario
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Flujo Invitado
+1. Usuario ingresa como invitado desde pantalla de bienvenida
+2. Navega por el catálogo de canciones
+3. Agrega primera canción gratis
+4. Recibe confirmación con posición en playlist
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Flujo Registrado
+1. Usuario hace login/registro
+2. Selecciona canciones del catálogo
+3. Realiza microtransacción de $500
+4. Recibe comprobante digital completo
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Stack Tecnológico
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+- **Frontend**: React + TypeScript
+- **Routing**: React Router v6
+- **Styling**: Tailwind CSS con design system personalizado
+- **UI Components**: shadcn/ui (personalizados)
+- **Build Tool**: Vite
+- **Iconos**: Lucide React
+
+## Diseño
+
+### Sistema de Colores (HSL)
+- **Primary**: Púrpura vibrante (271° 81% 56%)
+- **Secondary**: Rosa/Fucsia (330° 81% 60%)
+- **Accent**: Naranja (38° 92% 50%)
+- **Background**: Dark gradient (240° 10% 6-10%)
+
+### Características de Diseño
+- Gradientes vibrantes inspirados en la energía nocturna
+- Glassmorphism en cards para efecto premium
+- Animaciones suaves y transiciones fluidas
+- Efectos de glow en elementos interactivos
+- Tipografía bold para impacto visual
+
+## Instalación y Uso
+
+```bash
+# Instalar dependencias
+npm install
+
+# Iniciar servidor de desarrollo
 npm run dev
+
+# Compilar para producción
+npm run build
 ```
 
-**Edit a file directly in GitHub**
+## Estructura del Proyecto
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+src/
+├── components/
+│   ├── ui/              # Componentes shadcn/ui personalizados
+│   ├── SongCard.tsx     # Card de canción con botón agregar
+│   └── VenueHeader.tsx  # Header con info del local
+├── pages/
+│   ├── Welcome.tsx      # Pantalla de bienvenida
+│   ├── Login.tsx        # Login/Registro
+│   ├── Home.tsx         # Catálogo de canciones
+│   └── Confirmation.tsx # Confirmación y comprobante
+├── data/
+│   └── mockData.ts      # Datos simulados
+└── index.css            # Design system y variables CSS
 
-**Use GitHub Codespaces**
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Entidades del Sistema
 
-## What technologies are used for this project?
+- **Usuario consumidor**: Interactúa con el catálogo y realiza transacciones
+- **Local**: Espacio físico con playlist activa
+- **Canción**: Unidad de contenido musical
+- **Artista**: Creador musical
+- **Microtransacción**: Operación de pago
+- **Comprobante digital**: Registro de transacción
 
-This project is built with:
+## Contextos de Uso
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+1. **Catálogo Musical**: Exploración y descubrimiento
+2. **Gestión de Playlist**: Administración de cola de reproducción
+3. **Transacciones**: Pagos y comprobantes
+4. **Experiencia en Local**: Disfrute de la música en vivo
 
-## How can I deploy this project?
+## Autor
 
-Simply open [Lovable](https://lovable.dev/projects/b664a66c-adef-4850-852b-ecb98e6286ca) and click on Share -> Publish.
+Proyecto universitario - Demo de sistema de interacción musical en locales
 
-## Can I connect a custom domain to my Lovable project?
+## Licencia
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Este es un proyecto educativo con fines demostrativos.
