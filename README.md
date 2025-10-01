@@ -131,3 +131,12 @@ Proyecto universitario - Demo de sistema de interacción musical en locales
 ## Licencia
 
 Este es un proyecto educativo con fines demostrativos.
+
+# Credentials for Spotify https://developer.spotify.com/
+Client ID: ad543d6b3b2e46ad8129e7da4102f40c
+Client secret: b36a41fd795c42049eaffdcc2272a640
+
+App name: rhythm-connect-io
+Website: https://localhost
+Redirect URIs: https://127.0.0.1
+APIs used: Web API
