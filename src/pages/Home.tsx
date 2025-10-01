@@ -22,7 +22,7 @@ const Home = () => {
       localStorage.setItem("hasUsedFreeSong", "true");
     }
 
-    setAddedSongs(prev => new Set(prev).add(songId));
+    // NO agregamos la canción aquí, solo navegamos a confirmación
     navigate("/confirmation", { 
       state: { 
         song, 

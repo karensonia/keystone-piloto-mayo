@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Music2, Clock, DollarSign, Receipt } from "lucide-react";
+import { CheckCircle2, Music2, Clock, DollarSign, Receipt, List } from "lucide-react";
 import { toast } from "sonner";
 
 interface LocationState {
@@ -20,6 +20,8 @@ const Confirmation = () => {
   const navigate = useNavigate();
   const state = location.state as LocationState;
   const [showReceipt, setShowReceipt] = useState(false);
+  const [showPlaylist, setShowPlaylist] = useState(false);
+  const [playlist, setPlaylist] = useState<any[]>([]);
 
   useEffect(() => {
     if (!state?.song) {
@@ -27,8 +29,27 @@ const Confirmation = () => {
       return;
     }
 
-    toast.success("¡Canción agregada exitosamente!");
+    // Cargar playlist existente
+    const savedPlaylist = localStorage.getItem("playlist");
+    if (savedPlaylist) {
+      setPlaylist(JSON.parse(savedPlaylist));
+    }
   }, [state, navigate]);
+
+  const handleAddToPlaylist = () => {
+    const newSong = {
+      ...state.song,
+      addedAt: new Date().toISOString(),
+      isFree: state.isFree
+    };
+    
+    const updatedPlaylist = [...playlist, newSong];
+    localStorage.setItem("playlist", JSON.stringify(updatedPlaylist));
+    setPlaylist(updatedPlaylist);
+    
+    toast.success("¡Canción agregada a la playlist!");
+    setShowPlaylist(true);
+  };
 
   if (!state?.song) return null;
 
@@ -158,14 +179,62 @@ const Confirmation = () => {
             </div>
           )}
 
-          <Button
-            variant="gradient"
-            size="lg"
-            className="w-full"
-            onClick={() => navigate("/home")}
-          >
-            Agregar otra canción
-          </Button>
+          {!showPlaylist ? (
+            <Button
+              variant="gradient"
+              size="lg"
+              className="w-full"
+              onClick={handleAddToPlaylist}
+            >
+              Agregar otra canción
+            </Button>
+          ) : (
+            <>
+              <div className="glass-card p-6 rounded-2xl space-y-4 animate-slide-up">
+                <div className="flex items-center gap-2 mb-4">
+                  <List className="w-5 h-5 text-primary" />
+                  <h3 className="text-xl font-bold text-foreground">Playlist del Local</h3>
+                </div>
+                
+                {playlist.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-4">
+                    No hay canciones en la playlist todavía
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {playlist.map((song, index) => (
+                      <div 
+                        key={`${song.id}-${song.addedAt}`}
+                        className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-bold">#{index + 1}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-foreground truncate">{song.title}</p>
+                          <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
+                        </div>
+                        {song.isFree && (
+                          <span className="text-xs px-2 py-1 rounded-full bg-accent/20 text-accent-foreground">
+                            Gratis
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <Button
+                variant="gradient"
+                size="lg"
+                className="w-full"
+                onClick={() => navigate("/home")}
+              >
+                Seguir agregando
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </div>
