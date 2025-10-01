@@ -8,16 +8,20 @@ interface SongCardProps {
   genre?: string;
   onAdd: () => void;
   isAdded?: boolean;
+  image?: string; // Nueva prop para mostrar imagen del álbum
 }
 
-export const SongCard = ({ title, artist, genre, onAdd, isAdded }: SongCardProps) => {
+export const SongCard = ({ title, artist, genre, onAdd, isAdded, image }: SongCardProps) => {
   return (
     <Card className="glass-card p-4 hover:shadow-[0_8px_32px_hsl(var(--primary)/0.2)] transition-all group">
       <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-          <Music2 className="w-7 h-7 text-white" />
+        <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform overflow-hidden">
+          {image ? (
+            <img src={image} alt={title} className="w-full h-full object-cover rounded-lg" />
+          ) : (
+            <Music2 className="w-7 h-7 text-white" />
+          )}
         </div>
-        
         <div className="flex-1 min-w-0">
           <h3 className="font-bold text-foreground truncate">{title}</h3>
           <p className="text-sm text-muted-foreground truncate">{artist}</p>
@@ -27,7 +31,6 @@ export const SongCard = ({ title, artist, genre, onAdd, isAdded }: SongCardProps
             </span>
           )}
         </div>
-        
         <Button
           size="icon"
           variant={isAdded ? "outline" : "default"}

@@ -213,6 +213,20 @@ const Confirmation = () => {
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-foreground truncate">{song.title}</p>
                           <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
+                          {/* Spotify embed player si existe id */}
+                          {song.id && (
+                            <div className="mt-2">
+                              <iframe
+                                src={`https://open.spotify.com/embed/track/${song.id}`}
+                                width="100%"
+                                height="80"
+                                frameBorder="0"
+                                allow="encrypted-media"
+                                title={`Spotify player for ${song.title}`}
+                                style={{ borderRadius: 8 }}
+                              ></iframe>
+                            </div>
+                          )}
                         </div>
                         {song.isFree && (
                           <span className="text-xs px-2 py-1 rounded-full bg-accent/20 text-accent-foreground">
