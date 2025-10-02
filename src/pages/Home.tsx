@@ -14,6 +14,30 @@ const Home = () => {
   const [songs, setSongs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Obtener el local seleccionado
+  const selectedVenue = JSON.parse(localStorage.getItem("selectedVenue") || "null");
+  // Visitantes: random entre 10 y 500, y aumenta con interacción
+  const [visitors, setVisitors] = useState(() => {
+    const saved = localStorage.getItem("venueVisitors");
+    if (saved) return parseInt(saved);
+    const initial = Math.floor(Math.random() * (500 - 10 + 1)) + 10;
+    localStorage.setItem("venueVisitors", initial.toString());
+    return initial;
+  });
+  // Canciones en fila: igual a la cantidad de canciones en la playlist
+  const [playlist, setPlaylist] = useState<any[]>(() => {
+    const saved = localStorage.getItem("playlist");
+    return saved ? JSON.parse(saved) : [];
+  });
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const saved = localStorage.getItem("playlist");
+      setPlaylist(saved ? JSON.parse(saved) : []);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+  const songsInQueue = playlist.length;
+
   useEffect(() => {
     async function fetchSongs() {
       setLoading(true);
@@ -30,12 +54,18 @@ const Home = () => {
     fetchSongs();
   }, []);
 
+  // Aumenta visitantes cada vez que se agrega una canción
   const handleAddSong = (songId: string, isFree: boolean = false) => {
     const song = songs.find(s => s.id === songId);
     if (!song) return;
     if (isFree && hasFreeSong) {
       localStorage.setItem("hasUsedFreeSong", "true");
     }
+    setVisitors((prev) => {
+      const next = prev + 1;
+      localStorage.setItem("venueVisitors", next.toString());
+      return next;
+    });
     navigate("/confirmation", {
       state: {
         song: {
@@ -45,7 +75,7 @@ const Home = () => {
           genre: song.album?.name,
           image: song.album?.images?.[0]?.url,
         },
-        position: mockVenue.songsInQueue + 1,
+        position: playlist.length + 1,
         isFree,
       },
     });
@@ -55,13 +85,43 @@ const Home = () => {
     <div className="min-h-screen p-6 pb-24">
       <div className="max-w-2xl mx-auto space-y-6">
         <VenueHeader
-          venueName={mockVenue.name}
-          visitors={mockVenue.visitors}
-          songsInQueue={mockVenue.songsInQueue}
+          venueName={selectedVenue?.name || mockVenue.name}
+          visitors={visitors}
+          songsInQueue={playlist.length}
         />
+        {/* Playlist del Local visible */}
+        <div className="glass-card p-6 rounded-2xl space-y-4 animate-slide-up">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="w-5 h-5 text-primary font-bold">🎵</span>
+            <h3 className="text-xl font-bold text-foreground">Playlist del Local</h3>
+          </div>
+          {playlist.length === 0 ? (
+            <p className="text-center text-muted-foreground py-4">No hay canciones en la playlist todavía</p>
+          ) : (
+            <div className="space-y-3">
+              {playlist.map((song, index) => (
+                <div
+                  key={`${song.id}-${song.addedAt}`}
+                  className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold">#{index + 1}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-foreground truncate">{song.title}</p>
+                    <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
+                  </div>
+                  {song.isFree && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-accent/20 text-accent-foreground">Gratis</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="space-y-4 animate-slide-up" style={{ animationDelay: "0.1s" }}>
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-foreground">Canciones de Spotify</h2>
+            <h2 className="text-2xl font-bold text-foreground">Canciones para agregar a la Playlist del Local</h2>
           </div>
           <div className="space-y-3">
             {loading ? (
@@ -80,6 +140,20 @@ const Home = () => {
               ))
             )}
           </div>
+        </div>
+        {/* Botón para salir del local y volver a /venues al final de la vista */}
+        <div className="mt-10">
+          <button
+            className="px-4 py-2 rounded-md bg-gradient-to-r from-primary to-secondary text-white font-bold shadow hover:opacity-90 transition-all w-full"
+            onClick={() => {
+              localStorage.removeItem("selectedVenue");
+              localStorage.removeItem("venueVisitors");
+              localStorage.removeItem("playlist");
+              navigate("/venues");
+            }}
+          >
+            Salir del local
+          </button>
         </div>
       </div>
     </div>

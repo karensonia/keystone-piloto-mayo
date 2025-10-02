@@ -74,7 +74,7 @@ const Welcome = () => {
             variant="outline"
             size="lg"
             className="w-full text-lg"
-            onClick={() => navigate("/home")}
+            onClick={() => navigate("/venues")}
           >
             Continuar como Invitado
           </Button>

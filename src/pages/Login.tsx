@@ -22,7 +22,7 @@ const Login = () => {
     }
 
     toast.success(isLogin ? "¡Bienvenido de vuelta!" : "¡Cuenta creada exitosamente!");
-    navigate("/home");
+    navigate("/venues");
   };
 
   return (
