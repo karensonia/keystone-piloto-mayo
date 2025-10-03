@@ -27,6 +27,8 @@ const Confirmation = () => {
   const [canShowReceipt, setCanShowReceipt] = useState(false);
   // Estado para mostrar el mensaje de confirmación solo después de agregar la canción
   const [showConfirmation, setShowConfirmation] = useState(false);
+  // Estado para mostrar el efecto de felicitaciones
+  const [showCongrats, setShowCongrats] = useState(false);
 
   useEffect(() => {
     if (!state?.song) {
@@ -62,7 +64,11 @@ const Confirmation = () => {
     toast.success("¡Canción agregada a la playlist!");
     setShowPlaylist(true);
     setCanShowReceipt(true);
-    setShowConfirmation(true); // Mostrar mensaje de confirmación
+    setShowCongrats(true); // Mostrar felicitaciones
+    setTimeout(() => {
+      setShowCongrats(false);
+      setShowConfirmation(true); // Mostrar mensaje de confirmación después del efecto
+    }, 3000);
   };
 
   if (!state?.song) return null;
@@ -75,7 +81,13 @@ const Confirmation = () => {
   const currentSong = playlist.length > 0 ? playlist[playlist.length - 1] : null;
 
   return (
-    <div className="min-h-screen p-6 flex flex-col items-center justify-center">
+    <div className="min-h-screen p-6 flex flex-col items-center justify-center relative">
+      {/* Efecto de felicitaciones sobre todas las capas */}
+      {showCongrats && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 animate-fade-in">
+          <img src="/felicitaciones.png" alt="Felicitaciones" className="max-w-xs w-full drop-shadow-2xl animate-pop" />
+        </div>
+      )}
       <div className="max-w-3xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 animate-slide-up">
         {/* Columna izquierda: reproductor y detalles */}
         <div className="space-y-6">
