@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Music4, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 const Login = () => {
@@ -26,31 +26,35 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col p-6">
+    <div className="min-h-screen flex flex-col p-6 relative overflow-hidden">
+      {/* Background Image con capa negra */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(/welcome.jpg)` }}
+      />
+      <div className="absolute inset-0 bg-black/60" />
       <Button
         variant="ghost"
         size="icon"
-        className="self-start mb-8"
+        className="self-start mb-8 z-10"
         onClick={() => navigate("/")}
       >
         <ArrowLeft className="w-5 h-5" />
       </Button>
-
-      <div className="flex-1 flex flex-col items-center justify-center">
+      <div className="flex-1 flex flex-col items-center justify-center z-10" style={{ justifyContent: 'flex-start', minHeight: '70vh' }}>
         <div className="max-w-md w-full space-y-8 animate-slide-up">
           {/* Logo */}
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-              <Music4 className="w-8 h-8 text-white" />
+          <div className="flex justify-center mt-8 mb-4">
+            <div className="w-28 h-28 rounded-2xl flex items-center justify-center overflow-hidden">
+              <img src="/keystone.png" alt="Keystone logo" className="w-full h-full object-contain" />
             </div>
           </div>
 
           {/* Title */}
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-gradient mb-2">Keystone</h1>
-            <h2 className="text-2xl font-bold text-foreground">
+            <h1 className="text-2xl font-bold text-foreground">
               {isLogin ? "Ingresa a tu cuenta" : "Crea tu cuenta"}
-            </h2>
+            </h1>
           </div>
 
           {/* Form */}

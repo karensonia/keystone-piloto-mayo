@@ -7,19 +7,19 @@ const venues = [
 		id: "siete-negronis",
 		name: "Siete Negronis",
 		address: "Av. Vitacura 3520, Santiago",
-		image: "https://lh3.googleusercontent.com/gps-cs-s/AC9h4nqrK6Yq3vKX0zYWoEL1Fw6LVixOMEfDnA2GA-bY790-bSKoB22riOpgTR-hXYbZjDck8oZROkOuZEJNPw60jhht_Fbqtdy5nBHFAGbY7xhckeVl3aHDKorhT2U7cZDnOKTZZjXg=w243-h406-n-k-no-nu",
+		image: "/sieteNegronis/SieteNegronis.png",
 	},
 	{
 		id: "bar-candelaria",
 		name: "Bar Candelaria",
 		address: "Av. Providencia 1234, Santiago",
-		image: "https://lh3.googleusercontent.com/gps-cs-s/AC9h4nolHNTGFTu3ao646XFg8jXR1YAjOZI1E3NEyWBAveKQDHJn2LyUZNVUdiT_xkGffkBfY3Mc048hIpXsnvc9PamrO8HwwOdr-_zKbkmdxwklPb7S4kLFM5csIRr1pE_flIijLE8s=s1360-w1360-h1020-rw",
+		image: "/barCandelaria/BarCandelaria.png",
 	},
 	{
 		id: "resto-milano",
 		name: "Resto Milano",
 		address: "Av. Italia 567, Santiago",
-		image: "https://lh3.googleusercontent.com/p/AF1QipMQM84GCmEM6Jn2Rt3SbTpCh5Yx2H9piy6XEuF9=s1360-w1360-h1020-rw",
+		image: "/restoMilano/RestoMilano.png",
 	},
 ];
 

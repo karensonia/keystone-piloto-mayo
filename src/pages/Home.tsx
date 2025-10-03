@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { SongCard } from "@/components/SongCard";
 import { VenueHeader } from "@/components/VenueHeader";
 import { mockVenue } from "@/data/mockData";
 import { getSpotifyToken, searchSpotifyTracks } from "@/lib/spotify";
@@ -103,7 +102,7 @@ const Home = () => {
         <div className="glass-card p-6 rounded-2xl space-y-4 animate-slide-up">
           <div className="flex items-center gap-2 mb-4">
             <span className="w-5 h-5 text-primary font-bold">🎵</span>
-            <h3 className="text-xl font-bold text-foreground">Playlist del Local</h3>
+            <h3 className="text-xl font-bold text-foreground">Fila de Reproducción</h3>
           </div>
           {playlist.length === 0 ? (
             <p className="text-center text-muted-foreground py-4">No hay canciones en la playlist todavía</p>
@@ -129,27 +128,14 @@ const Home = () => {
             </div>
           )}
         </div>
-        <div className="space-y-4 animate-slide-up" style={{ animationDelay: "0.1s" }}>
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-foreground">Canciones para agregar a la Playlist del Local</h2>
-          </div>
-          <div className="space-y-3">
-            {loading ? (
-              <div className="text-center text-muted-foreground">Cargando canciones...</div>
-            ) : (
-              songs.map((song) => (
-                <SongCard
-                  key={song.id}
-                  title={song.name}
-                  artist={song.artists?.map((a: any) => a.name).join(", ")}
-                  genre={song.album?.name}
-                  onAdd={() => handleAddSong(song.id)}
-                  isAdded={addedSongs.has(song.id)}
-                  image={song.album?.images?.[0]?.url}
-                />
-              ))
-            )}
-          </div>
+        {/* Botón para agregar una canción */}
+        <div className="mt-6">
+          <button
+            className="px-4 py-2 rounded-md bg-gradient-to-r from-primary to-secondary text-white font-bold shadow hover:opacity-90 transition-all w-full"
+            onClick={() => navigate("/add-song")}
+          >
+            Agregar una canción
+          </button>
         </div>
         {/* Botón para salir del local y volver a /venues al final de la vista */}
         <div className="mt-10">

@@ -30,27 +30,30 @@ const Confirmation = () => {
   // Estado para mostrar el efecto de felicitaciones
   const [showCongrats, setShowCongrats] = useState(false);
 
+  // Obtener el local seleccionado y la clave de playlist
+  const selectedVenue = JSON.parse(localStorage.getItem("selectedVenue") || "null");
+  const playlistKey = selectedVenue ? `playlist_${selectedVenue.id}` : "playlist_default";
+
   useEffect(() => {
     if (!state?.song) {
       navigate("/home");
       return;
     }
-
-    // Cargar playlist existente
-    const savedPlaylist = localStorage.getItem("playlist");
+    // Cargar playlist existente del local
+    const savedPlaylist = localStorage.getItem(playlistKey);
     if (savedPlaylist) {
       setPlaylist(JSON.parse(savedPlaylist));
     }
-  }, [state, navigate]);
+  }, [state, navigate, playlistKey]);
 
   // Actualizar playlist si cambia en localStorage
   useEffect(() => {
     const interval = setInterval(() => {
-      const saved = localStorage.getItem("playlist");
+      const saved = localStorage.getItem(playlistKey);
       setPlaylist(saved ? JSON.parse(saved) : []);
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [playlistKey]);
 
   const handleAddToPlaylist = () => {
     const newSong = {
@@ -59,7 +62,7 @@ const Confirmation = () => {
       isFree: state.isFree
     };
     const updatedPlaylist = [...playlist, newSong];
-    localStorage.setItem("playlist", JSON.stringify(updatedPlaylist));
+    localStorage.setItem(playlistKey, JSON.stringify(updatedPlaylist));
     setPlaylist(updatedPlaylist);
     toast.success("¡Canción agregada a la playlist!");
     setShowPlaylist(true);
