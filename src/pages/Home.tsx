@@ -16,26 +16,19 @@ const Home = () => {
 
   // Obtener el local seleccionado
   const selectedVenue = JSON.parse(localStorage.getItem("selectedVenue") || "null");
-  // Visitantes: random entre 10 y 500, y aumenta con interacción
-  const [visitors, setVisitors] = useState(() => {
-    const saved = localStorage.getItem("venueVisitors");
-    if (saved) return parseInt(saved);
-    const initial = Math.floor(Math.random() * (500 - 10 + 1)) + 10;
-    localStorage.setItem("venueVisitors", initial.toString());
-    return initial;
-  });
-  // Canciones en fila: igual a la cantidad de canciones en la playlist
+  const playlistKey = selectedVenue ? `playlist_${selectedVenue.id}` : "playlist_default";
+  // Playlist del local específico
   const [playlist, setPlaylist] = useState<any[]>(() => {
-    const saved = localStorage.getItem("playlist");
+    const saved = localStorage.getItem(playlistKey);
     return saved ? JSON.parse(saved) : [];
   });
   useEffect(() => {
     const interval = setInterval(() => {
-      const saved = localStorage.getItem("playlist");
+      const saved = localStorage.getItem(playlistKey);
       setPlaylist(saved ? JSON.parse(saved) : []);
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [playlistKey]);
   const songsInQueue = playlist.length;
 
   useEffect(() => {
@@ -54,6 +47,16 @@ const Home = () => {
     fetchSongs();
   }, []);
 
+  // Visitantes: random entre 10 y 500, y aumenta con interacción, por local
+  const visitorsKey = selectedVenue ? `visitors_${selectedVenue.id}` : "visitors_default";
+  const [visitors, setVisitors] = useState(() => {
+    const saved = localStorage.getItem(visitorsKey);
+    if (saved) return parseInt(saved);
+    const initial = Math.floor(Math.random() * (500 - 10 + 1)) + 10;
+    localStorage.setItem(visitorsKey, initial.toString());
+    return initial;
+  });
+
   // Aumenta visitantes cada vez que se agrega una canción
   const handleAddSong = (songId: string, isFree: boolean = false) => {
     const song = songs.find(s => s.id === songId);
@@ -63,19 +66,26 @@ const Home = () => {
     }
     setVisitors((prev) => {
       const next = prev + 1;
-      localStorage.setItem("venueVisitors", next.toString());
+      localStorage.setItem(visitorsKey, next.toString());
       return next;
     });
+    // Actualiza la playlist del local
+    const newSong = {
+      id: song.id,
+      title: song.name,
+      artist: song.artists?.map((a: any) => a.name).join(", "),
+      genre: song.album?.name,
+      image: song.album?.images?.[0]?.url,
+      addedAt: new Date().toISOString(),
+      isFree,
+    };
+    const updatedPlaylist = [...playlist, newSong];
+    localStorage.setItem(playlistKey, JSON.stringify(updatedPlaylist));
+    setPlaylist(updatedPlaylist);
     navigate("/confirmation", {
       state: {
-        song: {
-          id: song.id,
-          title: song.name,
-          artist: song.artists?.map((a: any) => a.name).join(", "),
-          genre: song.album?.name,
-          image: song.album?.images?.[0]?.url,
-        },
-        position: playlist.length + 1,
+        song: newSong,
+        position: updatedPlaylist.length,
         isFree,
       },
     });
