@@ -157,7 +157,7 @@ const Home = () => {
           </button>
         </div>
         {/* Botón para salir del local y volver a /venues al final de la vista */}
-        <div className="mt-10">
+        {/* <div className="mt-10">
           <button
             className="px-4 py-2 rounded-md bg-gradient-to-r from-primary to-secondary text-white font-bold shadow hover:opacity-90 transition-all w-full"
             onClick={() => {
@@ -169,7 +169,7 @@ const Home = () => {
           >
             Salir del local
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   );
