@@ -158,7 +158,7 @@ const Confirmation = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <DollarSign className="w-4 h-4" />
-                      <span>Monto pagado</span>
+                      <span>Monto a Pagar</span>
                     </div>
                     <span className="font-bold text-foreground">
                       {amount === 0 ? "Gratis" : `$${amount}`}
@@ -185,16 +185,6 @@ const Confirmation = () => {
           )}
           {/* Actions */}
           <div className="space-y-3">
-            {/* Botón Cancelar visible antes de la confirmación */}
-            {!showConfirmation && (
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => navigate("/home")}
-              >
-                Cancelar
-              </Button>
-            )}
             {/* Botón para volver a /home después de la confirmación */}
             {showConfirmation && (
               <Button
@@ -203,9 +193,10 @@ const Confirmation = () => {
                 className="w-full"
                 onClick={() => navigate("/home")}
               >
-                Volver al catálogo
+                Volver al local
               </Button>
             )}
+
             {/* Botón comprobante digital solo si corresponde */}
             {canShowReceipt && (
               <Button
@@ -254,6 +245,7 @@ const Confirmation = () => {
               </div>
             )}
 
+            {/* Confirmar canción (visible cuando no se ha agregado aún) */}
             {!showPlaylist ? (
               <Button
                 variant="gradient"
@@ -261,9 +253,20 @@ const Confirmation = () => {
                 className="w-full"
                 onClick={handleAddToPlaylist}
               >
-                Agregar otra canción
+                Confirmar  Canción
               </Button>
             ) : null}
+
+            {/* Botón Cancelar visible antes de la confirmación: ahora debajo del botón Confirmar */}
+            {!showConfirmation && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate("/add-song")}
+              >
+                Volver
+              </Button>
+            )}
           </div>
         </div>
         {/* Columna derecha: playlist visualizada */}

@@ -32,24 +32,9 @@ const Welcome = () => {
 
         {/* Steps */}
         <div className="glass-card p-6 rounded-2xl space-y-3">
-          <div className="flex items-center gap-3" style={{ marginLeft: 0 }}>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#FF7A8A' }}>
-              <span className="text-white font-bold">1</span>
-            </div>
-            <p className="text-sm text-foreground">Revisa la lista</p>
-          </div>
-          <div className="flex items-center gap-3" style={{ marginLeft: '1.5rem' }}>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#FF7A8A' }}>
-              <span className="text-white font-bold">2</span>
-            </div>
-            <p className="text-sm text-foreground">Confirma la canción</p>
-          </div>
-          <div className="flex items-center gap-3" style={{ marginLeft: '3rem' }}>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#FF7A8A' }}>
-              <span className="text-white font-bold">3</span>
-            </div>
-            <p className="text-sm text-foreground">Agrega a la playlist</p>
-          </div>
+          <p className="text-sm text-foreground">Revisa la lista</p>
+          <p className="text-sm text-foreground">Confirma la canción</p>
+          <p className="text-sm text-foreground">Agrega a la playlist</p>
         </div>
 
         {/* Action Buttons */}
@@ -58,17 +43,9 @@ const Welcome = () => {
             variant="gradient"
             size="lg"
             className="w-full text-lg"
-            onClick={() => navigate("/login")}
-          >
-            Login
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="w-full text-lg"
             onClick={() => navigate("/venues")}
           >
-            Continuar como Invitado
+            INGRESAR
           </Button>
         </div>
       </div>

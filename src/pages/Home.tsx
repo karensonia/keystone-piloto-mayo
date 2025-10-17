@@ -38,6 +38,25 @@ const Home = () => {
         // Puedes cambiar el query por el género/artista que prefieras
         const tracks = await searchSpotifyTracks("pop", token);
         setSongs(tracks);
+
+        // Si la playlist del local está vacía, inicializarla con la primera canción
+        const saved = localStorage.getItem(playlistKey);
+        const currentPlaylist = saved ? JSON.parse(saved) : [];
+        if ((currentPlaylist.length === 0) && tracks && tracks.length > 0) {
+          const first = tracks[0];
+          const defaultSong = {
+            id: first.id,
+            title: first.name,
+            artist: first.artists?.map((a: any) => a.name).join(", "),
+            genre: first.album?.name,
+            image: first.album?.images?.[0]?.url,
+            addedAt: new Date().toISOString(),
+            isDefault: true,
+          };
+          const updated = [defaultSong];
+          localStorage.setItem(playlistKey, JSON.stringify(updated));
+          setPlaylist(updated);
+        }
       } catch (err) {
         setSongs([]);
       }
