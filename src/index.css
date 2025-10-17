@@ -17,10 +17,10 @@ All colors MUST be HSL.
     --popover: 240 8% 12%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 271 81% 56%;
+    --primary: 353, 100%, 74%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 330 81% 60%;
+    --secondary: 353, 95%, 75%;
     --secondary-foreground: 0 0% 100%;
 
     --accent: 38 92% 50%;
@@ -39,13 +39,13 @@ All colors MUST be HSL.
     --radius: 1rem;
 
     /* Custom gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(271 81% 56%), hsl(330 81% 60%));
-    --gradient-secondary: linear-gradient(135deg, hsl(330 81% 60%), hsl(38 92% 50%));
-    --gradient-bg: linear-gradient(180deg, hsl(240 10% 6%), hsl(240 10% 10%));
+    --gradient-primary: linear-gradient(135deg, hsl(353, 100%, 74%), hsl(353, 100%, 74%));
+    --gradient-secondary: linear-gradient(135deg, hsl(353, 90%, 69%), hsl(353, 87%, 75%));
+    --gradient-bg: linear-gradient(180deg, hsl(234, 52%, 14%), hsl(234, 52%, 14%));
     
     /* Shadows */
-    --shadow-glow: 0 0 30px hsl(271 81% 56% / 0.3);
-    --shadow-card: 0 8px 32px hsl(0 0% 0% / 0.4);
+    --shadow-glow: 0 0 30px hsl(353, 95%, 75%);
+    --shadow-card: 0 8px 32px hsl(353, 93%, 76%);
     
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -59,7 +59,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(180deg, hsl(240 10% 6%), hsl(240 10% 10%));
+    background: linear-gradient(180deg, hsl(234, 52%, 14%), hsl(234, 52%, 14%));
     background-attachment: fixed;
   }
   

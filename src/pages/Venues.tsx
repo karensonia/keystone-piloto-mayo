@@ -9,7 +9,7 @@ const venues = [
 		address: "Av. Vitacura 3520, Santiago",
 		image: "/sieteNegronis/SieteNegronis.png",
 	},
-	{
+	/*{
 		id: "bar-candelaria",
 		name: "Bar Candelaria",
 		address: "Av. Providencia 1234, Santiago",
@@ -20,7 +20,7 @@ const venues = [
 		name: "Resto Milano",
 		address: "Av. Italia 567, Santiago",
 		image: "/restoMilano/RestoMilano.png",
-	},
+	},*/
 ];
 
 const Venues = () => {
@@ -39,9 +39,9 @@ const Venues = () => {
 	return (
 		<div className="min-h-screen flex flex-col items-center justify-center p-6">
 			<h1 className="text-3xl font-bold mb-8 text-gradient">
-				Elige tu local
+				Confirma tu local
 			</h1>
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
+			<div className="grid grid-cols-1 md:grid-cols-1 gap-8 w-full max-w-4xl">
 				{venues.map((venue) => (
 					<Card
 						key={venue.id}
