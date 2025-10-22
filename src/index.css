@@ -18,10 +18,12 @@ All colors MUST be HSL.
     --popover-foreground: 0 0% 98%;
 
     --primary: 353, 100%, 74%;
+  --primary-hover: 353 100% 64%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 353, 95%, 75%;
-    --secondary-foreground: 0 0% 100%;
+  /* secondary: changed to a teal/cyan tone to be visually distinct from primary */
+  --secondary: 190, 85%, 48%;
+  --secondary-foreground: 0 0% 100%;
 
     --accent: 38 92% 50%;
     --accent-foreground: 0 0% 100%;
@@ -88,5 +90,41 @@ All colors MUST be HSL.
     background: hsl(var(--card) / 0.5);
     backdrop-filter: blur(12px);
     border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  /* Image mask: overlay the app background color at 5% opacity
+     Usage:
+       - Add class `img-mask` to an <img> wrapper or the image itself.
+       - Or use `bg-img-mask` on a container to apply the same overlay.
+  */
+  .img-mask {
+    position: relative;
+    display: inline-block;
+  }
+
+  .img-mask img,
+  .img-mask > img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .img-mask::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, hsl(var(--background)) 5%, transparent);
+    pointer-events: none;
+    mix-blend-mode: normal;
+  }
+
+  /* For background images or container overlays */
+  .bg-img-mask::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, hsl(var(--background)) 5%, transparent);
+    pointer-events: none;
+    mix-blend-mode: normal;
   }
 }

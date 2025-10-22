@@ -13,8 +13,23 @@ interface SongCardProps {
 
 export const SongCard = ({ title, artist, genre, onAdd, isAdded, image }: SongCardProps) => {
   return (
-    <Card className="glass-card p-4 hover:shadow-[0_8px_32px_hsl(var(--primary)/0.2)] transition-all group">
-      <div className="flex items-center gap-4">
+    <Card className="relative overflow-hidden glass-card p-4 hover:shadow-[0_8px_32px_hsl(var(--primary)/0.2)] transition-all group">
+      {/* background image layer (appears when active/hover) */}
+      {image && (
+        <div
+          className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          style={{ backgroundImage: `url(${image})`, backgroundSize: "cover", backgroundPosition: "center" }}
+        />
+      )}
+      {/* overlay mask using app background color at 80% to mute the image */}
+      {image && (
+        <div
+          className="absolute inset-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          style={{ background: "color-mix(in srgb, hsl(var(--background)) 80%, transparent)" }}
+        />
+      )}
+
+      <div className="relative z-20 flex items-center gap-4">
         <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform overflow-hidden">
           {image ? (
             <img src={image} alt={title} className="w-full h-full object-cover rounded-lg" />
@@ -32,13 +47,14 @@ export const SongCard = ({ title, artist, genre, onAdd, isAdded, image }: SongCa
           )}
         </div>
         <Button
-          size="icon"
+          size="default"
           variant={isAdded ? "outline" : "default"}
           onClick={onAdd}
           disabled={isAdded}
-          className="flex-shrink-0"
+          className="flex-shrink-0 whitespace-nowrap px-3 hover:bg-[hsl(var(--primary-hover))]"
+          aria-label={isAdded ? "Agregada" : "Agregar canción"}
         >
-          <Plus className="w-5 h-5" />
+          {isAdded ? "Agregada" : "Agregar canción"}
         </Button>
       </div>
     </Card>

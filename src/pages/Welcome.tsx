@@ -32,7 +32,7 @@ const Welcome = () => {
 
         {/* Steps */}
         <div className="glass-card p-6 rounded-2xl space-y-3">
-          <p className="text-sm text-foreground">Confirma el bar, elige tu canción ¡y agrega a la playlist!</p>
+          <p className="text-sm text-foreground">Confirma el bar en el que te encuentras, selecciona una canción del catálogo y agrégala a la playlist del local</p>
         </div>
 
         {/* Action Buttons */}

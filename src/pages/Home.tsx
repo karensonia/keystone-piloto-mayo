@@ -132,8 +132,8 @@ const Home = () => {
                   key={`${song.id}-${song.addedAt}`}
                   className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold">#{index + 1}</span>
+                  <div className="w-10 h-10 rounded-md bg-muted/12 flex items-center justify-center flex-shrink-0 border border-muted/20">
+                    <span className="text-muted-foreground font-semibold">#{index + 1}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-foreground truncate">{song.title}</p>
@@ -147,15 +147,7 @@ const Home = () => {
             </div>
           )}
         </div>
-        {/* Botón para agregar una canción */}
-        <div className="mt-6">
-          <button
-            className="px-4 py-2 rounded-md bg-gradient-to-r from-primary to-secondary text-white font-bold shadow hover:opacity-90 transition-all w-full"
-            onClick={() => navigate("/add-song")}
-          >
-            Agregar una canción
-          </button>
-        </div>
+        {/* Primary action moved to header */}
         {/* Botón para salir del local y volver a /venues al final de la vista */}
         {/* <div className="mt-10">
           <button

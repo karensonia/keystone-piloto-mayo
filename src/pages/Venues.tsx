@@ -7,7 +7,7 @@ const venues = [
 		id: "siete-negronis",
 		name: "Siete Negronis",
 		address: "Av. Vitacura 3520, Santiago",
-		image: "/sieteNegronis/SieteNegronis.png",
+		image: "/sieteNegronis/sietenegronis.jpg",
 	},
 	/*{
 		id: "bar-candelaria",
