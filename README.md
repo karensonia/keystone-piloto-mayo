@@ -131,3 +131,57 @@ Proyecto universitario - Demo de sistema de interacción musical en locales
 ## Licencia
 
 Este es un proyecto educativo con fines demostrativos.
+
+## Despliegue a AWS S3 (Instrucciones)
+
+IMPORTANTE: No agregues claves de acceso en este repositorio. Usa un usuario IAM con permisos mínimos y configura tus credenciales localmente (no las subas a Git).
+
+1) Instalar AWS CLI (macOS):
+
+```bash
+# usando Homebrew
+brew install awscli
+```
+
+2) Configurar credenciales (opciones):
+
+- Ejecuta `aws configure` y proporciona tu Access Key ID, Secret Access Key, región y formato de salida.
+- O exporta variables de entorno en tu máquina local (ejemplo `~/.zshrc`):
+
+```bash
+export AWS_ACCESS_KEY_ID="<tu_access_key_id>"
+export AWS_SECRET_ACCESS_KEY="<tu_secret_access_key>"
+export AWS_DEFAULT_REGION="us-east-1"
+```
+
+3) Crear un bucket S3 (ejemplo):
+
+```bash
+aws s3 mb s3://mi-bucket-keystone --region us-east-1
+```
+
+4) Construir la aplicación (Vite):
+
+```bash
+npm run build
+```
+
+5) Subir el build al bucket (ejemplo):
+
+```bash
+# Asegúrate de que la carpeta de salida es 'dist' tras el build
+aws s3 sync dist/ s3://mi-bucket-keystone --delete --acl public-read
+```
+
+6) (Opcional) Habilitar hosting estático en S3 y/o configurar CloudFront para CDN y HTTPS.
+
+Recomendaciones de seguridad:
+
+- Usa un usuario IAM con permisos limitados (ej. políticas que permitan `s3:PutObject`, `s3:ListBucket`, `s3:DeleteObject`, `s3:GetBucketLocation` en el bucket específico).
+- No subas claves al repositorio. Si necesitas integrarlo en CI/CD, utiliza secretos del proveedor (GitHub Actions Secrets, GitLab CI variables, etc.).
+- Considera usar roles y políticas vinculadas a instancias o a pipelines cuando publiques en producción.
+
+Si quieres, puedo:
+- Añadir un archivo de ejemplo `.github/workflows/deploy.yml` para desplegar automáticamente a S3 desde GitHub Actions usando Secrets.
+- O ejecutar algunos comandos en tu terminal si autorizas correrlos aquí.
+

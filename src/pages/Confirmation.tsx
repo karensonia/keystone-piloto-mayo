@@ -10,6 +10,7 @@ interface LocationState {
     title: string;
     artist: string;
     genre: string;
+    image?: string;
   };
   position: number;
   isFree?: boolean;
@@ -108,28 +109,23 @@ const Confirmation = () => {
               </div>
             </>
           )}
-          {/* Reproductor embebido de Spotify y detalles de compra solo si showConfirmation es false */}
+          {/* Detalles de compra solo si showConfirmation es false */}
           {!showConfirmation && (
             <>
-              {/* Reproductor embebido de Spotify con preview de la canción seleccionada */}
-              {state.song?.id && (
-                <div className="mb-4">
-                  <iframe
-                    src={`https://open.spotify.com/embed/track/${state.song.id}`}
-                    width="100%"
-                    height="80"
-                    frameBorder="0"
-                    allow="encrypted-media"
-                    title={`Spotify player for ${state.song.title}`}
-                    style={{ borderRadius: 8 }}
-                  ></iframe>
-                </div>
-              )}
-              {/* Song Info Card y detalles de compra */}
               <div className="glass-card p-6 rounded-2xl space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
-                    <Music2 className="w-8 h-8 text-white" />
+                  <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-primary/60 to-secondary/60 flex-shrink-0">
+                    {state.song.image ? (
+                      <img
+                        src={state.song.image}
+                        alt={state.song.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Music2 className="w-8 h-8 text-white" />
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-lg text-foreground truncate">{state.song.title}</h3>
