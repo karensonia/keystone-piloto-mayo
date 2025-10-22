@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SongCard } from "@/components/SongCard";
-import { getSpotifyToken, searchSpotifyTracks } from "@/lib/spotify";
+import { getSpotifyToken, searchSpotifyTracks, getChileTopTracks } from "@/lib/spotify";
 
 const AddSong = () => {
   const navigate = useNavigate();
@@ -11,6 +11,7 @@ const AddSong = () => {
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState("");
+  const [previewingId, setPreviewingId] = useState<string | null>(null);
 
   const [query, setQuery] = useState("");
   // estados para búsqueda
@@ -20,15 +21,34 @@ const AddSong = () => {
     async function fetchSongs() {
       setLoading(true);
       setError("");
+      setSongs([]);
       try {
         const token = await getSpotifyToken();
-        const tracks = await searchSpotifyTracks("pop", token); // precarga
-        setSongs(tracks);
+        let hasAny = false;
+        let loadingCleared = false;
+        const tracks = await getChileTopTracks(token, 10, (track) => {
+          hasAny = true;
+          setSongs((prev) => {
+            if (prev.find((s) => s.id === track.id)) return prev;
+            const next = [...prev, track];
+            return next.slice(0, 10);
+          });
+          if (!loadingCleared) {
+            setLoading(false);
+            loadingCleared = true;
+          }
+        }); // precarga con Top 10 Chile
+        if (!hasAny) {
+          setLoading(false);
+        }
+        if (tracks && tracks.length > 0) {
+          setSongs(tracks.slice(0, 10));
+        }
       } catch (err) {
         setError("No se pudieron cargar las canciones de Spotify.");
         setSongs([]);
+        setLoading(false);
       }
-      setLoading(false);
     }
     fetchSongs();
   }, []);
@@ -70,6 +90,7 @@ const AddSong = () => {
       genre: song.album?.name,
       image: song.album?.images?.[0]?.url,
     };
+    setPreviewingId(null);
 
     navigate("/confirmation", {
       state: {
@@ -80,6 +101,10 @@ const AddSong = () => {
   };
 
   const displayed = results.length > 0 ? results : songs;
+
+  const togglePreview = (songId: string) => {
+    setPreviewingId((prev) => (prev === songId ? null : songId));
+  };
 
   return (
     <div className="min-h-screen p-6 flex flex-col items-center">
@@ -129,7 +154,7 @@ const AddSong = () => {
         ) : displayed.length === 0 ? (
           <p className="text-center text-muted-foreground">No hay canciones disponibles para agregar.</p>
         ) : (
-          displayed.slice(0, 10).map((song, idx) => (
+          displayed.slice(0, 10).map((song) => (
             <SongCard
               key={song.id}
               title={song.name}
@@ -137,6 +162,10 @@ const AddSong = () => {
               genre={song.album?.name}
               image={song.album?.images?.[0]?.url}
               onAdd={() => handleAddSong(song)}
+              onPreview={() => togglePreview(song.id)}
+              isPreviewing={previewingId === song.id}
+              previewUrl={song.preview_url}
+              trackId={song.id}
             />
           ))
         )}
