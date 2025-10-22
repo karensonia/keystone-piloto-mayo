@@ -180,15 +180,6 @@ const Home = () => {
             <p className="text-center text-muted-foreground py-4">No hay canciones en la playlist todavía</p>
           ) : (
             <div className="space-y-3">
-<<<<<<< HEAD
-              {playlist.map((song, index) => (
-                <div
-                  key={`${song.id}-${song.addedAt}`}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border"
-                >
-                  <div className="w-10 h-10 rounded-md bg-muted/12 flex items-center justify-center flex-shrink-0 border border-muted/20">
-                    <span className="text-muted-foreground font-semibold">#{index + 1}</span>
-=======
               {playlist.map((song, index) => {
                 const durationMs = song.durationMs ?? song.duration_ms ?? 180000;
                 const startedAt = song.startedAt || song.addedAt;
@@ -200,7 +191,6 @@ const Home = () => {
                     key={`${song.id}-${song.addedAt}`}
                     className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border"
                   >
-
                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted/40 flex-shrink-0">
                       {song.image ? (
                         <img src={song.image} alt={song.title} className="w-full h-full object-cover" />
@@ -228,7 +218,6 @@ const Home = () => {
                     {song.isFree && (
                       <span className="text-xs px-2 py-1 rounded-full bg-accent/20 text-accent-foreground">Gratis</span>
                     )}
->>>>>>> d31f7265f1d2028f124602603fd7bbcc29a029aa
                   </div>
                 );
               })}

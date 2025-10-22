@@ -58,14 +58,14 @@ const Confirmation = () => {
     return () => clearInterval(interval);
   }, [playlistKey]);
 
-  // Cargar script de Typeform dinámicamente para que el embed funcione
+  // Cargar script de Typeform dinámicamente cuando se muestra la confirmación
   useEffect(() => {
-    const liveId = "01K854WFNWZZSC8D42GBMZMJZS";
-    const selector = `div[data-tf-live="${liveId}"]`;
-    const container = document.querySelector(selector);
-    if (!container) return;
+    if (!showConfirmation) return;
 
+    const liveId = "01K854WFNWZZSC8D42GBMZMJZS";
     const scriptId = 'typeform-embed-script';
+    
+    // Verificar si el script ya existe
     const existing = document.getElementById(scriptId);
     if (!existing) {
       const s = document.createElement('script');
@@ -73,21 +73,24 @@ const Confirmation = () => {
       s.id = scriptId;
       s.async = true;
       document.body.appendChild(s);
-      return;
+    } else {
+      // Si el script ya está presente, intentar re-inicializar el embed
+      const win = window as any;
+      setTimeout(() => {
+        try {
+          if (win.tf && typeof win.tf.createWidget === 'function') {
+            const selector = `div[data-tf-live="${liveId}"]`;
+            const container = document.querySelector(selector);
+            if (container && !container.querySelector('iframe')) {
+              win.tf.createWidget(liveId, { container });
+            }
+          }
+        } catch (e) {
+          console.error('Error loading Typeform:', e);
+        }
+      }, 100);
     }
-
-    // Si el script ya está presente, intentar re-inicializar el embed si la API existe
-    const win = window as any;
-    try {
-      if (win.tf && typeof win.tf.init === 'function') {
-        win.tf.init();
-      } else if (win.tf && typeof win.tf.load === 'function') {
-        win.tf.load();
-      }
-    } catch (e) {
-      // ignore
-    }
-  }, []);
+  }, [showConfirmation]);
 
   const handleAddToPlaylist = () => {
     const newSong = {
@@ -184,14 +187,8 @@ const Confirmation = () => {
                 </div>
               </div>
             </>
-<<<<<<< HEAD
           ) : (
             // Estado pre-confirmación
-=======
-          )}
-          {/* Detalles de compra solo si showConfirmation es false */}
-          {!showConfirmation && (
->>>>>>> d31f7265f1d2028f124602603fd7bbcc29a029aa
             <>
               <div className="glass-card p-6 rounded-2xl space-y-4">
                 <div className="flex items-center gap-4">
@@ -350,10 +347,12 @@ const Confirmation = () => {
         <div className="glass-card p-6 rounded-2xl space-y-4 animate-slide-up">
           {showConfirmation ? (
             // Mostrar Typeform después de la confirmación
-            <div>
-              <h3 className="text-xl font-bold text-foreground mb-6">Tu opinión nos ayuda a mejorar</h3>
-              <div style={{ minHeight: '400px' }}>
-<div data-tf-live="01K854WFNWZZSC8D42GBMZMJZS"></div>              </div>
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-foreground">Tu opinión nos ayuda a mejorar</h3>
+              <div 
+                data-tf-live="01K854WFNWZZSC8D42GBMZMJZS"
+                style={{ minHeight: '500px', width: '100%' }}
+              ></div>
             </div>
           ) : (
             // Mostrar playlist antes de la confirmación
