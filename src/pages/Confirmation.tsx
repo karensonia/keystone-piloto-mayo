@@ -351,7 +351,7 @@ const Confirmation = () => {
             <div>
               <h3 className="text-xl font-bold text-foreground mb-6">Tu opinión nos ayuda a mejorar</h3>
               <div style={{ minHeight: '400px' }}>
-<div data-tf-live="01K854WFNWZZSC8D42GBMZMJZS"></div><script src="//embed.typeform.com/next/embed.js"></script>              </div>
+<div data-tf-live="01K854WFNWZZSC8D42GBMZMJZS"></div>              </div>
             </div>
           ) : (
             // Mostrar playlist antes de la confirmación
