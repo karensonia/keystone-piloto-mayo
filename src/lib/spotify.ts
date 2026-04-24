@@ -1,8 +1,8 @@
 // src/lib/spotify.ts
 // Lógica para autenticar y buscar canciones en Spotify
 
-const CLIENT_ID = "ad543d6b3b2e46ad8129e7da4102f40c";
-const CLIENT_SECRET = "b36a41fd795c42049eaffdcc2272a640";
+const CLIENT_ID = "88f91fc4c45c4dacaf7fa4d7a911c480";
+const CLIENT_SECRET = "4fca9f0c1592478d80744a717537510e";
 
 // Obtiene el token de acceso usando Client Credentials Flow
 export async function getSpotifyToken(): Promise<string> {

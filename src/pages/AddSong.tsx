@@ -91,11 +91,13 @@ const AddSong = () => {
       image: song.album?.images?.[0]?.url,
     };
     setPreviewingId(null);
+    const isFree = !localStorage.getItem("hasUsedFreeSong");
 
     navigate("/confirmation", {
       state: {
         song: newSong,
         position: computePosition(),
+        isFree,
       },
     });
   };

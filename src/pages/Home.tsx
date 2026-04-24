@@ -1,27 +1,20 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { VenueHeader } from "@/components/VenueHeader";
 import { mockVenue } from "@/data/mockData";
 import { getSpotifyToken, getChileTopTracks } from "@/lib/spotify";
 
 const Home = () => {
-  const navigate = useNavigate();
-  const [addedSongs, setAddedSongs] = useState<Set<string>>(new Set());
-  const [hasFreeSong] = useState(() => {
-    return !localStorage.getItem("hasUsedFreeSong");
-  });
-  const [songs, setSongs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(() => Date.now());
 
-  // Obtener el local seleccionado
   const selectedVenue = JSON.parse(localStorage.getItem("selectedVenue") || "null");
   const playlistKey = selectedVenue ? `playlist_${selectedVenue.id}` : "playlist_default";
-  // Playlist del local específico
+
   const [playlist, setPlaylist] = useState<any[]>(() => {
     const saved = localStorage.getItem(playlistKey);
     return saved ? JSON.parse(saved) : [];
   });
+
+  // Sincroniza playlist entre tabs cada segundo
   useEffect(() => {
     const interval = setInterval(() => {
       const saved = localStorage.getItem(playlistKey);
@@ -29,131 +22,80 @@ const Home = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, [playlistKey]);
-  const songsInQueue = playlist.length;
 
+  // Reloj para barra de progreso
   useEffect(() => {
-    const ticker = setInterval(() => {
-      setNow(Date.now());
-    }, 1000);
+    const ticker = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(ticker);
   }, []);
 
+  // Inicializa playlist con primera canción del Top Chile si está vacía
   useEffect(() => {
-    async function fetchSongs() {
-      setLoading(true);
+    async function initPlaylist() {
+      const saved = localStorage.getItem(playlistKey);
+      const current = saved ? JSON.parse(saved) : [];
+      if (current.length > 0) return;
       try {
         const token = await getSpotifyToken();
-        // Precargamos con el Top 10 Chile de Spotify para tener contexto local
-        const tracks = await getChileTopTracks(token);
-        setSongs(tracks);
-
-        // Si la playlist del local está vacía, inicializarla con la primera canción
-        const saved = localStorage.getItem(playlistKey);
-        const currentPlaylist = saved ? JSON.parse(saved) : [];
-        if ((currentPlaylist.length === 0) && tracks && tracks.length > 0) {
-          const first = tracks[0];
-          const defaultSong = {
-            id: first.id,
-            title: first.name,
-            artist: first.artists?.map((a: any) => a.name).join(", "),
-            genre: first.album?.name,
-            image: first.album?.images?.[0]?.url,
-            durationMs: first.duration_ms ?? 180000,
-            addedAt: new Date().toISOString(),
-            startedAt: new Date().toISOString(),
-            isDefault: true,
-          };
-          const updated = [defaultSong];
-          localStorage.setItem(playlistKey, JSON.stringify(updated));
-          setPlaylist(updated);
-        }
-      } catch (err) {
-        setSongs([]);
+        const tracks = await getChileTopTracks(token, 1);
+        if (!tracks || tracks.length === 0) return;
+        const first = tracks[0];
+        const defaultSong = {
+          id: first.id,
+          title: first.name,
+          artist: first.artists?.map((a: any) => a.name).join(", "),
+          genre: first.album?.name,
+          image: first.album?.images?.[0]?.url,
+          durationMs: first.duration_ms ?? 180000,
+          addedAt: new Date().toISOString(),
+          startedAt: new Date().toISOString(),
+          isDefault: true,
+        };
+        localStorage.setItem(playlistKey, JSON.stringify([defaultSong]));
+        setPlaylist([defaultSong]);
+      } catch {
+        // playlist permanece vacía
       }
-      setLoading(false);
     }
-    fetchSongs();
-  }, []);
+    initPlaylist();
+  }, [playlistKey]);
 
-  // Visitantes: random entre 10 y 500, y aumenta con interacción, por local
+  // Asegura que la primera canción tenga startedAt
+  useEffect(() => {
+    if (playlist.length === 0) return;
+    const first = playlist[0];
+    if (first.startedAt) return;
+    const updated = [{ ...first, startedAt: new Date().toISOString() }, ...playlist.slice(1)];
+    localStorage.setItem(playlistKey, JSON.stringify(updated));
+    setPlaylist(updated);
+  }, [playlist, playlistKey]);
+
+  // Avanza la playlist cuando termina la canción actual
+  useEffect(() => {
+    if (playlist.length === 0) return;
+    const first = playlist[0];
+    const durationMs = first.durationMs ?? first.duration_ms ?? 180000;
+    const startedAtMs = first.startedAt || first.addedAt
+      ? new Date(first.startedAt || first.addedAt).getTime()
+      : null;
+    if (!durationMs || !startedAtMs) return;
+    if (now - startedAtMs < durationMs) return;
+    const remaining = playlist.slice(1);
+    if (remaining.length > 0 && !remaining[0].startedAt) {
+      remaining[0] = { ...remaining[0], startedAt: new Date(startedAtMs + durationMs).toISOString() };
+    }
+    localStorage.setItem(playlistKey, JSON.stringify(remaining));
+    setPlaylist(remaining);
+  }, [now, playlist, playlistKey]);
+
   const visitorsKey = selectedVenue ? `visitors_${selectedVenue.id}` : "visitors_default";
-  const [visitors, setVisitors] = useState(() => {
+  const [visitors] = useState(() => {
     const saved = localStorage.getItem(visitorsKey);
     if (saved) return parseInt(saved);
     const initial = Math.floor(Math.random() * (500 - 10 + 1)) + 10;
     localStorage.setItem(visitorsKey, initial.toString());
     return initial;
   });
-
-  // Aumenta visitantes cada vez que se agrega una canción
-  const handleAddSong = (songId: string, isFree: boolean = false) => {
-    const song = songs.find(s => s.id === songId);
-    if (!song) return;
-    if (isFree && hasFreeSong) {
-      localStorage.setItem("hasUsedFreeSong", "true");
-    }
-    setVisitors((prev) => {
-      const next = prev + 1;
-      localStorage.setItem(visitorsKey, next.toString());
-      return next;
-    });
-    // Actualiza la playlist del local
-    const isFirstSong = playlist.length === 0;
-    const newSong: any = {
-      id: song.id,
-      title: song.name,
-      artist: song.artists?.map((a: any) => a.name).join(", "),
-      genre: song.album?.name,
-      image: song.album?.images?.[0]?.url,
-      durationMs: song.duration_ms ?? song.durationMs ?? 180000,
-      addedAt: new Date().toISOString(),
-      isFree,
-    };
-    if (isFirstSong) {
-      newSong.startedAt = new Date().toISOString();
-    }
-    const updatedPlaylist = [...playlist, newSong];
-    localStorage.setItem(playlistKey, JSON.stringify(updatedPlaylist));
-    setPlaylist(updatedPlaylist);
-    navigate("/confirmation", {
-      state: {
-        song: newSong,
-        position: updatedPlaylist.length,
-        isFree,
-      },
-    });
-  };
-
-  useEffect(() => {
-    if (playlist.length === 0) return;
-    const first = playlist[0];
-    if (first.startedAt) return;
-    const updated = [
-      { ...first, startedAt: new Date().toISOString() },
-      ...playlist.slice(1),
-    ];
-    localStorage.setItem(playlistKey, JSON.stringify(updated));
-    setPlaylist(updated);
-  }, [playlist, playlistKey]);
-
-  useEffect(() => {
-    if (playlist.length === 0) return;
-    const first = playlist[0];
-    const durationMs = first.durationMs ?? first.duration_ms ?? 180000;
-    const startedAtMs = first.startedAt || first.addedAt ? new Date(first.startedAt || first.addedAt).getTime() : null;
-    if (!durationMs || !startedAtMs) return;
-    if (now - startedAtMs < durationMs) return;
-    const remaining = playlist.slice(1);
-    if (remaining.length > 0) {
-      const next = { ...remaining[0] };
-      if (!next.startedAt) {
-        next.startedAt = new Date(startedAtMs + durationMs).toISOString();
-        remaining[0] = next;
-      }
-    }
-    localStorage.setItem(playlistKey, JSON.stringify(remaining));
-    setPlaylist(remaining);
-  }, [now, playlist, playlistKey]);
 
   const formatTime = (ms: number) => {
     const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -170,7 +112,6 @@ const Home = () => {
           visitors={visitors}
           songsInQueue={playlist.length}
         />
-        {/* Playlist del Local visible */}
         <div className="glass-card p-6 rounded-2xl space-y-4 animate-slide-up">
           <div className="flex items-center gap-2 mb-4">
             <span className="w-5 h-5 text-primary font-bold">🎵</span>
@@ -224,21 +165,6 @@ const Home = () => {
             </div>
           )}
         </div>
-        {/* Primary action moved to header */}
-        {/* Botón para salir del local y volver a /venues al final de la vista */}
-        {/* <div className="mt-10">
-          <button
-            className="px-4 py-2 rounded-md bg-gradient-to-r from-primary to-secondary text-white font-bold shadow hover:opacity-90 transition-all w-full"
-            onClick={() => {
-              localStorage.removeItem("selectedVenue");
-              localStorage.removeItem("venueVisitors");
-              localStorage.removeItem("playlist");
-              navigate("/venues");
-            }}
-          >
-            Salir del local
-          </button>
-        </div> */}
       </div>
     </div>
   );

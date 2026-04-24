@@ -23,14 +23,8 @@ const Confirmation = () => {
   const [showReceipt, setShowReceipt] = useState(false);
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [playlist, setPlaylist] = useState<any[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  // El botón de comprobante solo se muestra después de agregar otra canción
-  const [canShowReceipt, setCanShowReceipt] = useState(false);
-  // Estado para mostrar el mensaje de confirmación solo después de agregar la canción
   const [showConfirmation, setShowConfirmation] = useState(false);
-  // Estado para mostrar el efecto de felicitaciones
   const [showCongrats, setShowCongrats] = useState(false);
-  // Estado para controlar qué sección mostrar
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
 
   // Obtener el local seleccionado y la clave de playlist
@@ -93,17 +87,19 @@ const Confirmation = () => {
   }, [showConfirmation]);
 
   const handleAddToPlaylist = () => {
+    if (state.isFree) {
+      localStorage.setItem("hasUsedFreeSong", "true");
+    }
     const newSong = {
       ...state.song,
       addedAt: new Date().toISOString(),
-      isFree: state.isFree
+      isFree: state.isFree,
     };
     const updatedPlaylist = [...playlist, newSong];
     localStorage.setItem(playlistKey, JSON.stringify(updatedPlaylist));
     setPlaylist(updatedPlaylist);
     toast.success("¡Canción agregada a la playlist!");
     setShowPlaylist(true);
-    setCanShowReceipt(true);
     setShowCongrats(true); // Mostrar felicitaciones
     setTimeout(() => {
       setShowCongrats(false);
@@ -117,9 +113,6 @@ const Confirmation = () => {
   const estimatedWaitTime = Math.ceil(state.position * 3.5);
   const transactionId = `TRX-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
   const amount = state.isFree ? 0 : 500;
-
-  // El reproductor embebido solo muestra la última canción agregada
-  const currentSong = playlist.length > 0 ? playlist[playlist.length - 1] : null;
 
   return (
     <div className="min-h-screen p-6 flex flex-col items-center justify-center relative">
