@@ -224,7 +224,7 @@ const Home = () => {
           onClick={() => navigate("/add-song")}
         >
           <Plus size={16} />
-          Agregar canción · $700
+          Agregar canción · $1.000
         </button>
       </div>
     </div>

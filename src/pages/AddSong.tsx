@@ -143,7 +143,7 @@ const AddSong = () => {
     <div className="screen screen--search">
       {/* Header con buscador */}
       <header className="search-header">
-        <button className="icon-btn" onClick={() => navigate("/home")} aria-label="Volver">
+        <button className="icon-btn" onClick={() => navigate("/")} aria-label="Volver">
           <ArrowLeft size={18} />
         </button>
         <div className="search-bar">

@@ -4,6 +4,15 @@ import { Key, Zap, Music, Heart } from "lucide-react";
 const Welcome = () => {
   const navigate = useNavigate();
 
+  const handleStart = () => {
+    const venue = { id: "siete-negronis", name: "Siete Negronis", address: "Av. Vitacura 3520, Santiago" };
+    localStorage.setItem("selectedVenue", JSON.stringify(venue));
+    if (!localStorage.getItem(`playlist_${venue.id}`)) {
+      localStorage.setItem(`playlist_${venue.id}`, JSON.stringify([]));
+    }
+    navigate("/add-song");
+  };
+
   return (
     <div className="screen screen--home">
       {/* Orbs de fondo */}
@@ -36,7 +45,7 @@ const Welcome = () => {
           <span className="accent">aquí y ahora</span>?
         </h1>
         <p className="display-sub">
-          Elige tu canción por <strong>$700</strong> y hazla sonar en el bar.
+          Elige tu canción por <strong>$1.000</strong> y hazla sonar en el bar.
         </p>
         <span className="emotional-tag">
           <Heart size={13} />
@@ -48,7 +57,7 @@ const Welcome = () => {
       <div className="home-footer">
         <button
           className="btn btn--primary btn--xl"
-          onClick={() => navigate("/venues")}
+          onClick={handleStart}
         >
           <Music size={16} />
           Elegir canción

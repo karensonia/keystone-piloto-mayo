@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Info, Instagram, Lock, Heart, Check, List, Music } from "lucide-react";
+import { ArrowLeft, Info, Instagram, Lock, Heart, Check, Music } from "lucide-react";
+import { sendSongNotification } from "@/lib/email";
 
 const COVER_GRADIENTS = [
   "linear-gradient(135deg, #ff6a88, #ff99ac)",
@@ -67,6 +68,13 @@ const Confirmation = () => {
 
       setQueuePosition(updated.length);
       setPhase("success");
+
+      sendSongNotification({
+        songTitle: state.song.title,
+        songArtist: state.song.artist,
+        instagram: instagram.trim(),
+        isFree: !!state.isFree,
+      }).catch(() => {});
     }, 1500);
   };
 
@@ -91,7 +99,7 @@ const Confirmation = () => {
 
   if (!state?.song) return null;
 
-  const amount = state.isFree ? 0 : 700;
+  const amount = state.isFree ? 0 : 1000;
   const etaMin = Math.max(1, Math.floor((queuePosition - 1) * 3.5));
   const coverStyle = state.song.image
     ? { backgroundImage: `url(${state.song.image})` }
@@ -139,9 +147,9 @@ const Confirmation = () => {
         </div>
 
         <div className="screen-footer">
-          <button className="btn btn--primary btn--xl" onClick={() => navigate("/home")}>
-            <List size={16} />
-            Ver playlist
+          <button className="btn btn--primary btn--xl" onClick={() => navigate("/add-song")}>
+            <Music size={16} />
+            Agregar otra canción
           </button>
           <button className="btn btn--ghost" onClick={() => navigate("/")}>
             Volver al inicio
