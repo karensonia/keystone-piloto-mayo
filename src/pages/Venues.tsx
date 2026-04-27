@@ -1,76 +1,71 @@
 import { useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { ArrowLeft, MapPin, GlassWater } from "lucide-react";
+import { toast } from "sonner";
 
-const venues = [
-	{
-		id: "siete-negronis",
-		name: "Siete Negronis",
-		address: "Av. Vitacura 3520, Santiago",
-		image: "/sieteNegronis/sietenegronis.jpg",
-	},
-	/*{
-		id: "bar-candelaria",
-		name: "Bar Candelaria",
-		address: "Av. Providencia 1234, Santiago",
-		image: "/barCandelaria/BarCandelaria.png",
-	},
-	{
-		id: "resto-milano",
-		name: "Resto Milano",
-		address: "Av. Italia 567, Santiago",
-		image: "/restoMilano/RestoMilano.png",
-	},*/
-];
+const VENUE = {
+  id: "siete-negronis",
+  name: "Siete Negronis",
+  address: "Av. Vitacura 3520, Santiago",
+};
 
 const Venues = () => {
-	const navigate = useNavigate();
+  const navigate = useNavigate();
 
-	const handleEnter = (venue: any) => {
-		localStorage.setItem("selectedVenue", JSON.stringify(venue));
-		// Inicializa playlist del local si no existe
-		const playlistKey = `playlist_${venue.id}`;
-		if (!localStorage.getItem(playlistKey)) {
-			localStorage.setItem(playlistKey, JSON.stringify([]));
-		}
-		navigate("/home");
-	};
+  const handleConfirm = () => {
+    localStorage.setItem("selectedVenue", JSON.stringify(VENUE));
+    const playlistKey = `playlist_${VENUE.id}`;
+    if (!localStorage.getItem(playlistKey)) {
+      localStorage.setItem(playlistKey, JSON.stringify([]));
+    }
+    navigate("/home");
+  };
 
-	return (
-		<div className="min-h-screen flex flex-col items-center justify-center p-6">
-			<h1 className="text-3xl font-bold mb-8 text-gradient">
-				Confirma tu local
-			</h1>
-			<div className="grid grid-cols-1 md:grid-cols-1 gap-8 w-full max-w-4xl">
-				{venues.map((venue) => (
-					<Card
-						key={venue.id}
-						className="p-0 overflow-hidden shadow-lg group"
-					>
-						<img
-							src={venue.image}
-							alt={venue.name}
-							className="w-full h-48 object-cover group-hover:scale-105 transition-transform"
-						/>
-						<div className="p-6 flex flex-col gap-3">
-							<h2 className="font-bold text-xl text-foreground">
-								{venue.name}
-							</h2>
-							<p className="text-muted-foreground text-sm">
-								{venue.address}
-							</p>
-							<Button
-								className="mt-2 w-full"
-								onClick={() => handleEnter(venue)}
-							>
-								Entrar
-							</Button>
-						</div>
-					</Card>
-				))}
-			</div>
-		</div>
-	);
+  const handleWrongBar = () => {
+    toast("Escanea el QR del bar donde te encuentras");
+  };
+
+  return (
+    <div className="screen screen--validate">
+      <header className="app-header">
+        <button className="icon-btn" onClick={() => navigate("/")} aria-label="Volver">
+          <ArrowLeft size={18} />
+        </button>
+        <span className="app-header__title">Confirmar ubicación</span>
+        <span className="icon-btn icon-btn--placeholder" />
+      </header>
+
+      <div className="validate-body">
+        <div className="bar-card">
+          <div className="bar-card__glow" />
+          <div className="bar-card__logo">
+            <GlassWater size={32} />
+          </div>
+          <span className="bar-card__label">
+            <MapPin size={12} /> Estás en
+          </span>
+          <h2 className="bar-card__name">{VENUE.name}</h2>
+          <p className="bar-card__meta">{VENUE.address}</p>
+          <div className="bar-card__live">
+            <span className="pulse-dot" />
+            Keystone activo ahora
+          </div>
+        </div>
+
+        <p className="help-text">
+          Verifica que estás en el bar correcto antes de continuar.
+        </p>
+      </div>
+
+      <div className="screen-footer">
+        <button className="btn btn--primary btn--xl" onClick={handleConfirm}>
+          Sí, estoy aquí
+        </button>
+        <button className="btn btn--ghost" onClick={handleWrongBar}>
+          No es este bar
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default Venues;

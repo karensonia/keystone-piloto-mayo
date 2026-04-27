@@ -1,391 +1,242 @@
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { CheckCircle2, Music2, Clock, DollarSign, Receipt, List } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowLeft, Info, Instagram, Lock, Heart, Check, List, Music } from "lucide-react";
+
+const COVER_GRADIENTS = [
+  "linear-gradient(135deg, #ff6a88, #ff99ac)",
+  "linear-gradient(135deg, #00d4ff, #2b7fff)",
+  "linear-gradient(135deg, #b67bff, #7b5bff)",
+  "linear-gradient(135deg, #22e58a, #0ea571)",
+  "linear-gradient(135deg, #ffb547, #ff6a4d)",
+];
+
+function coverGradient(id: string) {
+  const n = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  return COVER_GRADIENTS[n % COVER_GRADIENTS.length];
+}
 
 interface LocationState {
-  song: {
-    id: string;
-    title: string;
-    artist: string;
-    genre: string;
-    image?: string;
-  };
+  song: { id: string; title: string; artist: string; image?: string };
   position: number;
   isFree?: boolean;
 }
+
+type Phase = "confirm" | "paying" | "success";
 
 const Confirmation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as LocationState;
-  const [showReceipt, setShowReceipt] = useState(false);
-  const [showPlaylist, setShowPlaylist] = useState(false);
-  const [playlist, setPlaylist] = useState<any[]>([]);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [showCongrats, setShowCongrats] = useState(false);
-  const [showTransactionDetails, setShowTransactionDetails] = useState(false);
+  const confettiRef = useRef<HTMLDivElement>(null);
 
-  // Obtener el local seleccionado y la clave de playlist
-  const selectedVenue = JSON.parse(localStorage.getItem("selectedVenue") || "null");
-  const playlistKey = selectedVenue ? `playlist_${selectedVenue.id}` : "playlist_default";
+  const [phase, setPhase] = useState<Phase>("confirm");
+  const [instagram, setInstagram] = useState("");
+  const [queuePosition, setQueuePosition] = useState(state?.position ?? 1);
 
   useEffect(() => {
-    if (!state?.song) {
-      navigate("/home");
-      return;
-    }
-    // Cargar playlist existente del local
-    const savedPlaylist = localStorage.getItem(playlistKey);
-    if (savedPlaylist) {
-      setPlaylist(JSON.parse(savedPlaylist));
-    }
-  }, [state, navigate, playlistKey]);
+    if (!state?.song) navigate("/home");
+  }, [state, navigate]);
 
-  // Actualizar playlist si cambia en localStorage
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const saved = localStorage.getItem(playlistKey);
-      setPlaylist(saved ? JSON.parse(saved) : []);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [playlistKey]);
-
-  // Cargar script de Typeform dinámicamente cuando se muestra la confirmación
-  useEffect(() => {
-    if (!showConfirmation) return;
-
-    const liveId = "01K854WFNWZZSC8D42GBMZMJZS";
-    const scriptId = 'typeform-embed-script';
-    
-    // Verificar si el script ya existe
-    const existing = document.getElementById(scriptId);
-    if (!existing) {
-      const s = document.createElement('script');
-      s.src = '//embed.typeform.com/next/embed.js';
-      s.id = scriptId;
-      s.async = true;
-      document.body.appendChild(s);
-    } else {
-      // Si el script ya está presente, intentar re-inicializar el embed
-      const win = window as any;
-      setTimeout(() => {
-        try {
-          if (win.tf && typeof win.tf.createWidget === 'function') {
-            const selector = `div[data-tf-live="${liveId}"]`;
-            const container = document.querySelector(selector);
-            if (container && !container.querySelector('iframe')) {
-              win.tf.createWidget(liveId, { container });
-            }
-          }
-        } catch (e) {
-          console.error('Error loading Typeform:', e);
-        }
-      }, 100);
-    }
-  }, [showConfirmation]);
-
-  const handleAddToPlaylist = () => {
-    if (state.isFree) {
-      localStorage.setItem("hasUsedFreeSong", "true");
-    }
-    const newSong = {
-      ...state.song,
-      addedAt: new Date().toISOString(),
-      isFree: state.isFree,
-    };
-    const updatedPlaylist = [...playlist, newSong];
-    localStorage.setItem(playlistKey, JSON.stringify(updatedPlaylist));
-    setPlaylist(updatedPlaylist);
-    toast.success("¡Canción agregada a la playlist!");
-    setShowPlaylist(true);
-    setShowCongrats(true); // Mostrar felicitaciones
+  const handlePay = () => {
+    setPhase("paying");
     setTimeout(() => {
-      setShowCongrats(false);
-      setShowConfirmation(true); // Mostrar mensaje de confirmación después del efecto
-      setShowTransactionDetails(true); // Mostrar detalles de la transacción después de la confirmación
-    }, 3000);
+      // Agregar canción al localStorage
+      const selectedVenue = JSON.parse(localStorage.getItem("selectedVenue") || "null");
+      const playlistKey = selectedVenue ? `playlist_${selectedVenue.id}` : "playlist_default";
+      const saved = localStorage.getItem(playlistKey);
+      const current: any[] = saved ? JSON.parse(saved) : [];
+
+      if (state.isFree) localStorage.setItem("hasUsedFreeSong", "true");
+
+      const newSong = {
+        id: state.song.id,
+        title: state.song.title,
+        artist: state.song.artist,
+        image: state.song.image,
+        durationMs: 210000,
+        addedAt: new Date().toISOString(),
+        isFree: state.isFree,
+        instagram: instagram.trim() || null,
+      };
+      const updated = [...current, newSong];
+      localStorage.setItem(playlistKey, JSON.stringify(updated));
+
+      const visitorsKey = selectedVenue ? `visitors_${selectedVenue.id}` : "visitors_default";
+      const v = parseInt(localStorage.getItem(visitorsKey) || "0") + 1;
+      localStorage.setItem(visitorsKey, String(v));
+
+      setQueuePosition(updated.length);
+      setPhase("success");
+    }, 1500);
   };
+
+  // Confetti al entrar en success
+  useEffect(() => {
+    if (phase !== "success" || !confettiRef.current) return;
+    const container = confettiRef.current;
+    container.innerHTML = "";
+    const colors = ["#00d4ff", "#2b7fff", "#ff5577", "#22e58a", "#ffb547", "#b67bff"];
+    for (let i = 0; i < 40; i++) {
+      const span = document.createElement("span");
+      span.className = "confetti-piece";
+      span.style.left = `${Math.random() * 100}%`;
+      span.style.background = colors[Math.floor(Math.random() * colors.length)];
+      span.style.animationDelay = `${Math.random() * 0.8}s`;
+      span.style.animationDuration = `${2.5 + Math.random() * 2}s`;
+      span.style.width = `${6 + Math.random() * 6}px`;
+      span.style.height = `${10 + Math.random() * 10}px`;
+      container.appendChild(span);
+    }
+  }, [phase]);
 
   if (!state?.song) return null;
 
-  const estimatedWaitTime = Math.ceil(state.position * 3.5);
-  const transactionId = `TRX-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-  const amount = state.isFree ? 0 : 500;
+  const amount = state.isFree ? 0 : 700;
+  const etaMin = Math.max(1, Math.floor((queuePosition - 1) * 3.5));
+  const coverStyle = state.song.image
+    ? { backgroundImage: `url(${state.song.image})` }
+    : { background: coverGradient(state.song.id) };
 
+  /* ── ÉXITO ── */
+  if (phase === "success") {
+    return (
+      <div className="screen screen--success" style={{ position: "relative" }}>
+        <div className="success-bg">
+          <div ref={confettiRef} />
+        </div>
+
+        <div className="success-body">
+          <div className="success-check">
+            <div className="success-check__ring" />
+            <div className="success-check__circle">
+              <Check size={42} />
+            </div>
+          </div>
+
+          <h2 className="success-title">¡Tu canción fue agregada!</h2>
+          <span className="success-sub">
+            <Heart size={13} />
+            Estás apoyando a los artistas
+          </span>
+
+          <div className="success-song">
+            <div className="success-song__cover" style={coverStyle}>
+              {!state.song.image && <Music size={18} />}
+            </div>
+            <div className="success-song__info">
+              <h3>{state.song.title}</h3>
+              <p>{state.song.artist}</p>
+            </div>
+          </div>
+
+          <div className="queue-position">
+            <div>
+              <span className="queue-position__label">Tu posición en la cola</span>
+            </div>
+            <span className="queue-position__value">#{queuePosition}</span>
+            <span className="queue-position__eta">Suena en ~{etaMin} min</span>
+          </div>
+        </div>
+
+        <div className="screen-footer">
+          <button className="btn btn--primary btn--xl" onClick={() => navigate("/home")}>
+            <List size={16} />
+            Ver playlist
+          </button>
+          <button className="btn btn--ghost" onClick={() => navigate("/")}>
+            Volver al inicio
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── CONFIRM / PAYING ── */
   return (
-    <div className="min-h-screen p-6 flex flex-col items-center justify-center relative">
-      {/* Efecto de felicitaciones sobre todas las capas */}
-      {showCongrats && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 animate-fade-in">
-          <img src="/felicitaciones.png" alt="Felicitaciones" className="max-w-xs w-full drop-shadow-2xl animate-pop" />
+    <div className="screen screen--confirm" style={{ position: "relative" }}>
+      {/* Paying overlay */}
+      {phase === "paying" && (
+        <div className="paying-overlay">
+          <div className="paying-spinner" />
+          <p>Procesando pago…</p>
         </div>
       )}
-      <div className="max-w-3xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 animate-slide-up">
-        {/* Columna izquierda */}
-        <div className="space-y-6">
-          {showConfirmation && showTransactionDetails ? (
-            // Estado post-confirmación: Detalles de la transacción
-            <>
-              <div className="flex justify-center">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center animate-pulse-glow">
-                  <CheckCircle2 className="w-12 h-12 text-white" />
-                </div>
-              </div>
-              <div className="text-center space-y-2">
-                <h1 className="text-3xl font-bold text-gradient">¡Listo!</h1>
-                <p className="text-lg text-foreground">Tu canción ya es parte de la playlist de la noche</p>
-              </div>
-              
-              {/* Formulario de transacción solo después de la confirmación */}
-              <div className="mt-6 space-y-4">
-                <div className="glass-card p-6 rounded-2xl">
-                  <h3 className="text-lg font-semibold mb-4">Detalles de la Transacción</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">ID de Transacción:</span>
-                      <span className="font-mono">{transactionId}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Canción:</span>
-                      <span>{state.song.title}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Artista:</span>
-                      <span>{state.song.artist}</span>
-                    </div>
-                    <div className="flex justify-between font-bold pt-2 border-t border-border">
-                      <span>Total:</span>
-                      <span>${amount}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <Button 
-                    variant="gradient" 
-                    size="lg"
-                    className="w-full" 
-                    onClick={() => navigate("/add-song")}
-                  >
-                    Agregar otra canción
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    className="w-full" 
-                    onClick={() => navigate("/home")}
-                  >
-                    Volver al local
-                  </Button>
-                </div>
-              </div>
-            </>
-          ) : (
-            // Estado pre-confirmación
-            <>
-              <div className="glass-card p-6 rounded-2xl space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-primary/60 to-secondary/60 flex-shrink-0">
-                    {state.song.image ? (
-                      <img
-                        src={state.song.image}
-                        alt={state.song.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Music2 className="w-8 h-8 text-white" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-lg text-foreground truncate">{state.song.title}</h3>
-                    <p className="text-muted-foreground truncate">{state.song.artist}</p>
-                  </div>
-                </div>
 
-                {/* Details - emphasize these so the user reads before confirming */}
-                <div className="space-y-3 pt-4 border-t border-border">
-                  <div className="grid grid-cols-1 gap-2">
-                    <div className="p-3 rounded-md bg-primary/6 border border-primary/12 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Clock className="w-5 h-5 text-muted-foreground" />
-                        <div className="text-sm text-muted-foreground">Posición en fila</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-lg font-extrabold text-foreground">#{state.position}</div>
-                        <div className="text-xs text-muted-foreground">Tu lugar actual</div>
-                      </div>
-                    </div>
+      <header className="app-header">
+        <button
+          className="icon-btn"
+          onClick={() => navigate("/add-song")}
+          aria-label="Volver"
+          disabled={phase === "paying"}
+        >
+          <ArrowLeft size={18} />
+        </button>
+        <span className="app-header__title">Confirmar canción</span>
+        <span className="icon-btn icon-btn--placeholder" />
+      </header>
 
-                    <div className="p-3 rounded-md bg-primary/6 border border-primary/12 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Clock className="w-5 h-5 text-muted-foreground" />
-                        <div className="text-sm text-muted-foreground">Tiempo estimado</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-lg font-extrabold text-foreground">~{estimatedWaitTime} min</div>
-                        <div className="text-xs text-muted-foreground">Tiempo aproximado hasta su reproducción</div>
-                      </div>
-                    </div>
+      <div className="confirm-body">
+        <span className="section-eyebrow center">
+          <Music size={12} /> Tu canción
+        </span>
 
-                    <div className="p-3 rounded-md bg-primary/6 border border-primary/12 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <DollarSign className="w-5 h-5 text-muted-foreground" />
-                        <div className="text-sm text-muted-foreground">Monto a Pagar</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-lg font-extrabold text-foreground">{amount === 0 ? "Gratis" : `$${amount}`}</div>
-                        <div className="text-xs text-muted-foreground">Pago único para asegurar la canción</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Confirm button placed above the transaction message so the user sees details first */}
-                {!showPlaylist ? (
-                  <div className="pt-3">
-                    <Button
-                      variant="gradient"
-                      size="lg"
-                      className="w-full"
-                      onClick={handleAddToPlaylist}
-                    >
-                      Confirmar Canción
-                    </Button>
-                  </div>
-                ) : null}
-
-                {/* Transaction Message for pre-confirmation */}
-                {!showConfirmation && amount === 0 ? (
-                  <div className="p-3 rounded-lg bg-accent/20 border border-accent/30">
-                    <p className="text-sm text-center text-accent-foreground">
-                      🎁 Regalo para nuevo usuario
-                    </p>
-                  </div>
-                ) : !showConfirmation ? (
-                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-                    <p className="text-xs text-center text-muted-foreground">
-                      El monto será cargado a tu cuenta al finalizar la noche
-                    </p>
-                  </div>
-                ) : null}
-              </div>
-            </>
-          )}
-
-          {/* Botón comprobante digital */}
-          {showConfirmation && showTransactionDetails && (
-            <>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => setShowReceipt(!showReceipt)}
-              >
-                <Receipt className="w-4 h-4 mr-2" />
-                {showReceipt ? "Ocultar" : "Ver"} Comprobante Digital
-              </Button>
-
-              {showReceipt && (
-                <div className="glass-card p-4 rounded-xl space-y-2 text-sm animate-slide-up">
-                  <h3 className="font-bold text-foreground mb-3">Comprobante de Transacción</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">ID Transacción:</span>
-                      <span className="font-mono text-xs text-foreground">{transactionId}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Fecha:</span>
-                      <span className="text-foreground">{new Date().toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Hora:</span>
-                      <span className="text-foreground">{new Date().toLocaleTimeString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Local:</span>
-                      <span className="text-foreground">{selectedVenue?.name || "Local"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Canción:</span>
-                      <span className="text-foreground">{state.song.title}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Artista:</span>
-                      <span className="text-foreground">{state.song.artist}</span>
-                    </div>
-                    <div className="flex justify-between font-bold pt-2 border-t border-border">
-                      <span className="text-foreground">Total:</span>
-                      <span className="text-foreground">${amount}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Botón volver (pre-confirmación) */}
-          {!showConfirmation && !showPlaylist && (
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => navigate("/add-song")}
-            >
-              Volver
-            </Button>
-          )}
+        <div className="selected-song">
+          <div className="selected-song__cover" style={coverStyle}>
+            {!state.song.image && <Music size={34} />}
+          </div>
+          <h2 className="selected-song__title">{state.song.title}</h2>
+          <p className="selected-song__artist">{state.song.artist}</p>
+          <span className="selected-song__hint">
+            <Info size={12} />
+            Se agregará a la cola del bar
+          </span>
         </div>
 
-        {/* Columna derecha: playlist o typeform según el estado */}
-        <div className="glass-card p-6 rounded-2xl space-y-4 animate-slide-up">
-          {showConfirmation ? (
-            // Mostrar Typeform después de la confirmación
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold text-foreground">Tu opinión nos ayuda a mejorar</h3>
-              <div 
-                data-tf-live="01K854WFNWZZSC8D42GBMZMJZS"
-                style={{ minHeight: '500px', width: '100%' }}
-              ></div>
-            </div>
-          ) : (
-            // Mostrar playlist antes de la confirmación
-            <>
-              <div className="flex items-center gap-2 mb-4">
-                <List className="w-5 h-5 text-primary" />
-                <h3 className="text-xl font-bold text-foreground">Playlist del Local</h3>
-              </div>
-              {playlist.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4">No hay canciones en la playlist todavía</p>
-              ) : (
-                <div className="space-y-3">
-                  {playlist.map((song, index) => (
-                    <div
-                      key={`${song.id}-${song.addedAt}`}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border"
-                    >
-                      <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted/40 flex-shrink-0">
-                        {song.image ? (
-                          <img src={song.image} alt={song.title} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">♪</div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-foreground truncate">{song.title}</p>
-                        <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
-                      </div>
-                      {song.isFree && (
-                        <span className="text-xs px-2 py-1 rounded-full bg-accent/20 text-accent-foreground">
-                          Gratis
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+        <div className="form-field">
+          <label htmlFor="ig-input">
+            Tu Instagram <span className="optional">(opcional)</span>
+          </label>
+          <div className="input-wrap">
+            <Instagram size={16} />
+            <input
+              id="ig-input"
+              type="text"
+              placeholder="@tu_usuario"
+              value={instagram}
+              onChange={(e) => setInstagram(e.target.value)}
+              autoComplete="off"
+              onKeyDown={(e) => e.key === "Enter" && handlePay()}
+            />
+          </div>
+          <span className="field-hint">Para que vean quién puso el tema 🎵</span>
         </div>
+
+        <div className="price-box">
+          <div>
+            <span className="price-label">Total</span>
+            <span className="price-sub">Un pago único</span>
+          </div>
+          <div className="price-amount">
+            <span className="price-currency">$</span>
+            {amount.toLocaleString("es-CL")}
+            <span className="price-clp">CLP</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="screen-footer">
+        <button
+          className="btn btn--primary btn--xl"
+          onClick={handlePay}
+          disabled={phase === "paying"}
+        >
+          <Lock size={14} />
+          Pagar y agregar
+        </button>
+        <p className="micro-copy">
+          <Lock size={11} />
+          Pago seguro · Tu canción suena garantizada
+        </p>
       </div>
     </div>
   );

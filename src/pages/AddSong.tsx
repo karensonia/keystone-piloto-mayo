@@ -1,179 +1,232 @@
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { SongCard } from "@/components/SongCard";
+import { ArrowLeft, Search, X, Plus, Flame, Frown, Music } from "lucide-react";
 import { getSpotifyToken, searchSpotifyTracks, getChileTopTracks } from "@/lib/spotify";
+
+const COVER_GRADIENTS = [
+  "linear-gradient(135deg, #ff6a88, #ff99ac)",
+  "linear-gradient(135deg, #00d4ff, #2b7fff)",
+  "linear-gradient(135deg, #b67bff, #7b5bff)",
+  "linear-gradient(135deg, #22e58a, #0ea571)",
+  "linear-gradient(135deg, #ffb547, #ff6a4d)",
+  "linear-gradient(135deg, #ff5577, #c01850)",
+  "linear-gradient(135deg, #5bb8ff, #2264d1)",
+  "linear-gradient(135deg, #ffd371, #f0a500)",
+];
+
+function coverGradient(id: string) {
+  const n = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  return COVER_GRADIENTS[n % COVER_GRADIENTS.length];
+}
+
+function highlight(text: string, query: string) {
+  if (!query) return text;
+  const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi"));
+  return parts.map((p, i) =>
+    p.toLowerCase() === query.toLowerCase()
+      ? <mark key={i}>{p}</mark>
+      : p
+  );
+}
 
 const AddSong = () => {
   const navigate = useNavigate();
-  const [songs, setSongs] = useState<any[]>([]); // tracks precargados
-  const [results, setResults] = useState<any[]>([]); // resultados de búsqueda final
-  const [loading, setLoading] = useState(true);
-  const [searching, setSearching] = useState(false);
-  const [error, setError] = useState("");
-  const [previewingId, setPreviewingId] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [query, setQuery] = useState("");
-  // estados para búsqueda
+  const [popular, setPopular] = useState<any[]>([]);
+  const [results, setResults] = useState<any[]>([]);
+  const [loadingPopular, setLoadingPopular] = useState(true);
+  const [searching, setSearching] = useState(false);
+  const [noResults, setNoResults] = useState(false);
+  const [token, setToken] = useState("");
 
+  // Obtiene token y carga populares al montar
   useEffect(() => {
-    // Carga inicial para tener sugerencias mientras se escribe
-    async function fetchSongs() {
-      setLoading(true);
-      setError("");
-      setSongs([]);
+    async function load() {
+      setLoadingPopular(true);
       try {
-        const token = await getSpotifyToken();
-        let hasAny = false;
-        let loadingCleared = false;
-        const tracks = await getChileTopTracks(token, 10, (track) => {
-          hasAny = true;
-          setSongs((prev) => {
-            if (prev.find((s) => s.id === track.id)) return prev;
-            const next = [...prev, track];
-            return next.slice(0, 10);
-          });
-          if (!loadingCleared) {
-            setLoading(false);
-            loadingCleared = true;
-          }
-        }); // precarga con Top 10 Chile
-        if (!hasAny) {
-          setLoading(false);
-        }
-        if (tracks && tracks.length > 0) {
-          setSongs(tracks.slice(0, 10));
-        }
-      } catch (err) {
-        setError("No se pudieron cargar las canciones de Spotify.");
-        setSongs([]);
-        setLoading(false);
+        const t = await getSpotifyToken();
+        setToken(t);
+        const tracks = await getChileTopTracks(t, 10);
+        setPopular(tracks);
+      } catch {
+        // silently fail
       }
+      setLoadingPopular(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
-    fetchSongs();
+    load();
   }, []);
 
-  const performSearch = async () => {
-    const q = query.trim();
-    if (!q) return;
-    setSearching(true);
-    setError("");
-    try {
-      const token = await getSpotifyToken();
-      const tracks = await searchSpotifyTracks(q, token);
-      setResults((tracks || []).slice(0, 10)); // máximo 10 resultados
-    } catch (err) {
-      setError("Error al buscar en Spotify.");
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const q = e.target.value;
+    setQuery(q);
+    if (!q.trim()) {
       setResults([]);
+      setNoResults(false);
+      setSearching(false);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      return;
     }
+    setSearching(true);
+    setNoResults(false);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const t = token || (await getSpotifyToken());
+        const tracks = await searchSpotifyTracks(q.trim(), t, { limit: 10, market: "CL" });
+        setResults(tracks);
+        setNoResults(tracks.length === 0);
+      } catch {
+        setResults([]);
+        setNoResults(true);
+      }
+      setSearching(false);
+    }, 120);
+  };
+
+  const handleClear = () => {
+    setQuery("");
+    setResults([]);
+    setNoResults(false);
     setSearching(false);
+    inputRef.current?.focus();
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value);
-  };
-
-  // Calcula la posición real en la playlist leyendo localStorage (por local)
-  const computePosition = () => {
+  const handleSelect = (track: any) => {
     const selectedVenue = JSON.parse(localStorage.getItem("selectedVenue") || "null");
     const playlistKey = selectedVenue ? `playlist_${selectedVenue.id}` : "playlist_default";
     const saved = localStorage.getItem(playlistKey);
-    const curr = saved ? JSON.parse(saved) : [];
-    return curr.length + 1;
-  };
-
-  const handleAddSong = (song: any) => {
-    const newSong = {
-      id: song.id,
-      title: song.name,
-      artist: song.artists?.map((a: any) => a.name).join(", "),
-      genre: song.album?.name,
-      image: song.album?.images?.[0]?.url,
-    };
-    setPreviewingId(null);
+    const current = saved ? JSON.parse(saved) : [];
     const isFree = !localStorage.getItem("hasUsedFreeSong");
 
     navigate("/confirmation", {
       state: {
-        song: newSong,
-        position: computePosition(),
+        song: {
+          id: track.id,
+          title: track.name,
+          artist: track.artists?.map((a: any) => a.name).join(", "),
+          image: track.album?.images?.[0]?.url,
+        },
+        position: current.length + 1,
         isFree,
       },
     });
   };
 
-  const displayed = results.length > 0 ? results : songs;
+  const showPopular = !query.trim();
+  const displayList = showPopular ? popular : results;
 
-  const togglePreview = (songId: string) => {
-    setPreviewingId((prev) => (prev === songId ? null : songId));
-  };
+  const SongItem = ({ track, q = "" }: { track: any; q?: string }) => (
+    <li className="song-item" onClick={() => handleSelect(track)}>
+      <div
+        className="song-item__cover"
+        style={track.album?.images?.[0]?.url
+          ? { backgroundImage: `url(${track.album.images[0].url})` }
+          : { background: coverGradient(track.id) }}
+      >
+        {!track.album?.images?.[0]?.url && <Music size={16} />}
+      </div>
+      <div className="song-item__info">
+        <div className="song-item__title">{q ? highlight(track.name, q) : track.name}</div>
+        <div className="song-item__artist">{q ? highlight(track.artists?.map((a: any) => a.name).join(", "), q) : track.artists?.map((a: any) => a.name).join(", ")}</div>
+      </div>
+      <span className="song-item__action">
+        <Plus size={14} />
+      </span>
+    </li>
+  );
 
   return (
-    <div className="min-h-screen p-6 flex flex-col items-center">
-      <h1 className="text-3xl font-bold mb-6 text-center">Agregar una canción a la Playlist</h1>
-
-      <div className="max-w-2xl w-full space-y-4">
-        {/* Barra de búsqueda con botón de lupa dentro */}
-        <div className="relative mb-3">
+    <div className="screen screen--search">
+      {/* Header con buscador */}
+      <header className="search-header">
+        <button className="icon-btn" onClick={() => navigate("/home")} aria-label="Volver">
+          <ArrowLeft size={18} />
+        </button>
+        <div className="search-bar">
+          <Search size={14} />
           <input
+            ref={inputRef}
+            type="text"
             value={query}
-            onChange={handleInputChange}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                performSearch();
-              }
-            }}
-            placeholder="Busca por canción o artista..."
-            className="w-full rounded-full border border-border px-4 py-3 pr-12 focus:outline-none bg-card text-foreground"
-            aria-label="Buscar canciones"
+            onChange={handleChange}
+            placeholder="Busca canción o artista"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
           />
           <button
-            onClick={performSearch}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-muted/20 transition"
-            aria-label="Buscar"
+            className={`search-clear ${query ? "visible" : ""}`}
+            onClick={handleClear}
+            aria-label="Limpiar"
           >
-            {/* Icono lupa simple */}
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <X size={10} />
           </button>
         </div>
+      </header>
 
-        {/* Resultados / Lista final (máx 10) */}
-        {searching ? (
-          <div className="space-y-3">
-            <p className="text-center text-muted-foreground">Buscando...</p>
-            {/* Mostrar 3 placeholders para carga */}
-            <div className="animate-pulse space-y-2">
-              <div className="h-16 bg-muted/20 rounded-lg" />
-              <div className="h-16 bg-muted/20 rounded-lg" />
-              <div className="h-16 bg-muted/20 rounded-lg" />
-            </div>
+      {/* Body */}
+      <div className="search-body">
+        {/* Populares (estado por defecto) */}
+        {showPopular && (
+          <div>
+            <span className="section-eyebrow">
+              <Flame size={12} /> Populares esta noche
+            </span>
+            {loadingPopular ? (
+              <ul className="song-list">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <li key={i} className="song-item" style={{ opacity: 0.4, pointerEvents: "none" }}>
+                    <div className="song-item__cover" style={{ background: "var(--bg-3)" }} />
+                    <div className="song-item__info">
+                      <div style={{ height: 14, width: "60%", background: "var(--bg-3)", borderRadius: 6, marginBottom: 6 }} />
+                      <div style={{ height: 11, width: "40%", background: "var(--bg-3)", borderRadius: 6 }} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <ul className="song-list">
+                {popular.map((t) => <SongItem key={t.id} track={t} />)}
+              </ul>
+            )}
           </div>
-        ) : loading ? (
-          <p className="text-center text-muted-foreground">Cargando canciones...</p>
-        ) : error ? (
-          <p className="text-center text-destructive">{error}</p>
-        ) : displayed.length === 0 ? (
-          <p className="text-center text-muted-foreground">No hay canciones disponibles para agregar.</p>
-        ) : (
-          displayed.slice(0, 10).map((song) => (
-            <SongCard
-              key={song.id}
-              title={song.name}
-              artist={song.artists?.map((a: any) => a.name).join(", ")}
-              genre={song.album?.name}
-              image={song.album?.images?.[0]?.url}
-              onAdd={() => handleAddSong(song)}
-              onPreview={() => togglePreview(song.id)}
-              isPreviewing={previewingId === song.id}
-              previewUrl={song.preview_url}
-              trackId={song.id}
-            />
-          ))
+        )}
+
+        {/* Resultados de búsqueda */}
+        {!showPopular && !searching && !noResults && results.length > 0 && (
+          <ul className="song-list">
+            {results.map((t) => <SongItem key={t.id} track={t} q={query.trim().toLowerCase()} />)}
+          </ul>
+        )}
+
+        {/* Buscando… */}
+        {!showPopular && searching && (
+          <ul className="song-list">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <li key={i} className="song-item" style={{ opacity: 0.4, pointerEvents: "none" }}>
+                <div className="song-item__cover" style={{ background: "var(--bg-3)" }} />
+                <div className="song-item__info">
+                  <div style={{ height: 14, width: "55%", background: "var(--bg-3)", borderRadius: 6, marginBottom: 6 }} />
+                  <div style={{ height: 11, width: "35%", background: "var(--bg-3)", borderRadius: 6 }} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* Sin resultados */}
+        {!showPopular && !searching && noResults && (
+          <div className="search-empty">
+            <Frown size={40} />
+            <p>No encontramos nada con <strong>"{query}"</strong></p>
+            <span>Prueba con otro nombre o artista</span>
+          </div>
         )}
       </div>
-
-      <Button variant="outline" className="mt-8" onClick={() => navigate("/home")}>Volver</Button>
     </div>
   );
 };

@@ -1,50 +1,61 @@
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Key, Zap, Music, Heart } from "lucide-react";
 
 const Welcome = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Image con capa negra */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(/welcome.jpg)` }}
-      />
-      <div className="absolute inset-0 bg-black/60" />
-      
-      {/* Content */}
-      <div className="max-w-md w-full space-y-8 animate-slide-up relative z-10">
-        {/* Logo/Icon personalizado */}
-        <div className="flex justify-center">
-          <div className="relative">
-            <div className="w-24 h-24 rounded-3xl flex items-center justify-center overflow-hidden">
-              <img src="/keystone.png" alt="Keystone logo" className="w-full h-full object-contain" />
-            </div>
-          </div>
-        </div>
+    <div className="screen screen--home">
+      {/* Orbs de fondo */}
+      <div className="home-bg">
+        <div className="orb orb--cyan" />
+        <div className="orb orb--blue" />
+      </div>
 
-        {/* Title */}
-        <div className="text-center space-y-3">
-          <h1 className="text-5xl font-bold text-white">El soundtrack de tu noche también construye futuro para los artistas</h1>
+      {/* Header */}
+      <header className="home-header">
+        <div className="logo">
+          <span className="logo-mark">
+            <Key size={16} />
+          </span>
+          <span className="logo-text">Keystone</span>
         </div>
+        <span className="badge badge--ghost">
+          <Zap size={12} className="badge-accent" />
+          Sin registro
+        </span>
+      </header>
 
-        {/* Steps */}
-        <div className="glass-card p-6 rounded-2xl space-y-3">
-          <p className="text-sm text-foreground">Confirma el bar en el que te encuentras, selecciona una canción del catálogo y agrégala a la playlist del local</p>
+      {/* Body */}
+      <div className="home-body">
+        <div className="equalizer" aria-hidden="true">
+          <span /><span /><span /><span /><span />
         </div>
+        <h1 className="display-title">
+          ¿Quieres poner una canción{" "}
+          <span className="accent">aquí y ahora</span>?
+        </h1>
+        <p className="display-sub">
+          Elige tu canción por <strong>$700</strong> y hazla sonar en el bar.
+        </p>
+        <span className="emotional-tag">
+          <Heart size={13} />
+          Apoya a los artistas
+        </span>
+      </div>
 
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          <Button
-            variant="gradient"
-            size="lg"
-            className="w-full text-lg"
-            onClick={() => navigate("/venues")}
-          >
-            INGRESAR
-          </Button>
-        </div>
+      {/* Footer */}
+      <div className="home-footer">
+        <button
+          className="btn btn--primary btn--xl"
+          onClick={() => navigate("/venues")}
+        >
+          <Music size={16} />
+          Elegir canción
+        </button>
+        <p className="micro-copy">
+          No necesitas crear cuenta · Listo en 10 segundos
+        </p>
       </div>
     </div>
   );

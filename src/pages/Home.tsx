@@ -1,14 +1,31 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { VenueHeader } from "@/components/VenueHeader";
-import { mockVenue } from "@/data/mockData";
+import { ArrowLeft, Volume2, List, Plus, MoreVertical, Music } from "lucide-react";
 import { getSpotifyToken, getChileTopTracks } from "@/lib/spotify";
-import { Plus, Music2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
+const COVER_GRADIENTS = [
+  "linear-gradient(135deg, #ff6a88, #ff99ac)",
+  "linear-gradient(135deg, #00d4ff, #2b7fff)",
+  "linear-gradient(135deg, #b67bff, #7b5bff)",
+  "linear-gradient(135deg, #22e58a, #0ea571)",
+  "linear-gradient(135deg, #ffb547, #ff6a4d)",
+  "linear-gradient(135deg, #ff5577, #c01850)",
+  "linear-gradient(135deg, #5bb8ff, #2264d1)",
+  "linear-gradient(135deg, #ffd371, #f0a500)",
+];
+
+function coverGradient(id: string) {
+  const n = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  return COVER_GRADIENTS[n % COVER_GRADIENTS.length];
+}
+
+function formatTime(ms: number) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
 
 const Home = () => {
   const navigate = useNavigate();
-
   const selectedVenue = JSON.parse(localStorage.getItem("selectedVenue") || "null");
   const playlistKey = selectedVenue ? `playlist_${selectedVenue.id}` : "playlist_default";
 
@@ -16,11 +33,9 @@ const Home = () => {
     const saved = localStorage.getItem(playlistKey);
     return saved ? JSON.parse(saved) : [];
   });
+  const [now, setNow] = useState(() => Date.now());
 
-  const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Sincroniza playlist entre tabs cada segundo (para el contador del header)
+  // Sincroniza playlist entre tabs
   useEffect(() => {
     const interval = setInterval(() => {
       const saved = localStorage.getItem(playlistKey);
@@ -29,137 +44,188 @@ const Home = () => {
     return () => clearInterval(interval);
   }, [playlistKey]);
 
-  // Carga Top Chile como sugerencias e inicializa playlist si está vacía
+  // Reloj para barra de progreso
   useEffect(() => {
-    async function loadSuggestions() {
-      setLoading(true);
+    const ticker = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(ticker);
+  }, []);
+
+  // Inicializa playlist con Top Chile si está vacía
+  useEffect(() => {
+    async function init() {
+      const saved = localStorage.getItem(playlistKey);
+      const current = saved ? JSON.parse(saved) : [];
+      if (current.length > 0) return;
       try {
         const token = await getSpotifyToken();
-        const tracks = await getChileTopTracks(token, 10, (track, index) => {
-          if (index === 0) setLoading(false);
-          setSuggestions((prev) => {
-            if (prev.find((t) => t.id === track.id)) return prev;
-            return [...prev, track];
-          });
-        });
-
-        // Inicializa playlist con la primera canción si está vacía
-        const saved = localStorage.getItem(playlistKey);
-        const current = saved ? JSON.parse(saved) : [];
-        if (current.length === 0 && tracks.length > 0) {
-          const first = tracks[0];
-          const defaultSong = {
-            id: first.id,
-            title: first.name,
-            artist: first.artists?.map((a: any) => a.name).join(", "),
-            genre: first.album?.name,
-            image: first.album?.images?.[0]?.url,
-            durationMs: first.duration_ms ?? 180000,
-            addedAt: new Date().toISOString(),
-            startedAt: new Date().toISOString(),
-            isDefault: true,
-          };
-          localStorage.setItem(playlistKey, JSON.stringify([defaultSong]));
-          setPlaylist([defaultSong]);
-        }
+        const tracks = await getChileTopTracks(token, 1);
+        if (!tracks?.length) return;
+        const first = tracks[0];
+        const defaultSong = {
+          id: first.id,
+          title: first.name,
+          artist: first.artists?.map((a: any) => a.name).join(", "),
+          image: first.album?.images?.[0]?.url,
+          durationMs: first.duration_ms ?? 180000,
+          addedAt: new Date().toISOString(),
+          startedAt: new Date().toISOString(),
+          isDefault: true,
+        };
+        localStorage.setItem(playlistKey, JSON.stringify([defaultSong]));
+        setPlaylist([defaultSong]);
       } catch {
-        // suggestions permanece vacío
+        // playlist permanece vacía
       }
-      setLoading(false);
     }
-    loadSuggestions();
+    init();
   }, [playlistKey]);
 
-  const visitorsKey = selectedVenue ? `visitors_${selectedVenue.id}` : "visitors_default";
-  const [visitors] = useState(() => {
-    const saved = localStorage.getItem(visitorsKey);
-    if (saved) return parseInt(saved);
-    const initial = Math.floor(Math.random() * (500 - 10 + 1)) + 10;
-    localStorage.setItem(visitorsKey, initial.toString());
-    return initial;
-  });
+  // Asegura startedAt en la primera canción
+  useEffect(() => {
+    if (!playlist.length || playlist[0].startedAt) return;
+    const updated = [{ ...playlist[0], startedAt: new Date().toISOString() }, ...playlist.slice(1)];
+    localStorage.setItem(playlistKey, JSON.stringify(updated));
+    setPlaylist(updated);
+  }, [playlist, playlistKey]);
 
-  const handleAddSuggestion = (track: any) => {
-    const isFree = !localStorage.getItem("hasUsedFreeSong");
-    const savedPlaylist = localStorage.getItem(playlistKey);
-    const current = savedPlaylist ? JSON.parse(savedPlaylist) : [];
-    const song = {
-      id: track.id,
-      title: track.name,
-      artist: track.artists?.map((a: any) => a.name).join(", "),
-      genre: track.album?.name,
-      image: track.album?.images?.[0]?.url,
-    };
-    navigate("/confirmation", {
-      state: { song, position: current.length + 1, isFree },
-    });
-  };
+  // Avanza la playlist cuando termina la canción actual
+  useEffect(() => {
+    if (!playlist.length) return;
+    const first = playlist[0];
+    const durationMs = first.durationMs ?? 180000;
+    const startedAtMs = first.startedAt ? new Date(first.startedAt).getTime() : null;
+    if (!startedAtMs || now - startedAtMs < durationMs) return;
+    const remaining = playlist.slice(1);
+    if (remaining.length > 0 && !remaining[0].startedAt) {
+      remaining[0] = { ...remaining[0], startedAt: new Date(startedAtMs + durationMs).toISOString() };
+    }
+    localStorage.setItem(playlistKey, JSON.stringify(remaining));
+    setPlaylist(remaining);
+  }, [now, playlist, playlistKey]);
+
+  const nowPlaying = playlist[0] ?? null;
+  const upNext = playlist.slice(1);
+
+  const durationMs = nowPlaying?.durationMs ?? 180000;
+  const startedAtMs = nowPlaying?.startedAt ? new Date(nowPlaying.startedAt).getTime() : null;
+  const elapsedMs = startedAtMs ? Math.max(0, now - startedAtMs) : 0;
+  const progress = durationMs ? Math.min(1, elapsedMs / durationMs) : 0;
 
   return (
-    <div className="min-h-screen p-6 pb-24">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <VenueHeader
-          venueName={selectedVenue?.name || mockVenue.name}
-          visitors={visitors}
-          songsInQueue={playlist.length}
-        />
+    <div className="screen screen--playlist" style={{ position: "relative" }}>
+      {/* Header sticky */}
+      <header className="app-header app-header--sticky">
+        <button className="icon-btn" onClick={() => navigate("/venues")} aria-label="Volver">
+          <ArrowLeft size={18} />
+        </button>
+        <div className="app-header__stack">
+          <span className="app-header__title">{selectedVenue?.name ?? "Siete Negronis"}</span>
+          <span className="app-header__subtitle">
+            <span className="pulse-dot pulse-dot--sm" />
+            En vivo
+          </span>
+        </div>
+        <button className="icon-btn" aria-label="Opciones">
+          <MoreVertical size={18} />
+        </button>
+      </header>
 
-        <div className="glass-card p-6 rounded-2xl space-y-4 animate-slide-up">
-          <div className="flex items-center gap-2 mb-2">
-            <Music2 className="w-5 h-5 text-primary" />
-            <h3 className="text-xl font-bold text-foreground">Sugerencias para esta noche</h3>
-          </div>
-
-          {loading && suggestions.length === 0 ? (
-            <div className="space-y-3">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="animate-pulse flex items-center gap-3 p-3 rounded-lg bg-card/50">
-                  <div className="w-12 h-12 rounded-lg bg-muted/40 flex-shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-muted/40 rounded w-2/3" />
-                    <div className="h-3 bg-muted/40 rounded w-1/3" />
+      {/* Body scrollable */}
+      <div className="playlist-body">
+        {/* Now Playing */}
+        <div className="now-playing">
+          <span className="section-eyebrow">
+            <Volume2 size={12} /> Sonando ahora
+          </span>
+          {nowPlaying ? (
+            <div className="now-playing__card">
+              <div className="now-playing__cover">
+                {nowPlaying.image ? (
+                  <img src={nowPlaying.image} alt={nowPlaying.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <div className="vinyl">
+                    <div className="vinyl__disc">
+                      <div className="vinyl__label" />
+                    </div>
                   </div>
+                )}
+              </div>
+              <div className="now-playing__info">
+                <h3 className="now-playing__title">{nowPlaying.title}</h3>
+                <p className="now-playing__artist">{nowPlaying.artist}</p>
+                <div className="progress">
+                  <div className="progress__bar" style={{ width: `${progress * 100}%` }} />
                 </div>
-              ))}
+                <div className="progress__times">
+                  <span>{formatTime(Math.min(elapsedMs, durationMs))}</span>
+                  <span>{formatTime(durationMs)}</span>
+                </div>
+              </div>
             </div>
           ) : (
-            <div className="space-y-3">
-              {suggestions.map((track) => (
-                <div
-                  key={track.id}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border hover:border-primary/30 transition-colors"
-                >
-                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted/40 flex-shrink-0">
-                    {track.album?.images?.[0]?.url ? (
-                      <img
-                        src={track.album.images[0].url}
-                        alt={track.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">♪</div>
-                    )}
+            <div className="now-playing__card">
+              <div className="now-playing__cover">
+                <div className="vinyl">
+                  <div className="vinyl__disc">
+                    <div className="vinyl__label" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-foreground truncate">{track.name}</p>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {track.artists?.map((a: any) => a.name).join(", ")}
-                    </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="gradient"
-                    className="flex-shrink-0"
-                    onClick={() => handleAddSuggestion(track)}
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    Agregar
-                  </Button>
                 </div>
-              ))}
+              </div>
+              <div className="now-playing__info">
+                <p style={{ color: "var(--text-3)", fontSize: 14 }}>Cargando playlist…</p>
+              </div>
             </div>
           )}
         </div>
+
+        {/* Up Next */}
+        {upNext.length > 0 && (
+          <div className="up-next">
+            <div className="section-header">
+              <span className="section-eyebrow">
+                <List size={12} /> A continuación
+              </span>
+              <span className="queue-count">
+                {upNext.length} {upNext.length === 1 ? "canción" : "canciones"}
+              </span>
+            </div>
+            <ul className="queue">
+              {upNext.map((song, idx) => {
+                const etaMin = Math.ceil((idx + 1) * 3.5);
+                return (
+                  <li key={`${song.id}-${song.addedAt}`} className="queue-item">
+                    <span className="queue-item__pos">{idx + 1}</span>
+                    <div
+                      className="queue-item__cover"
+                      style={song.image ? { backgroundImage: `url(${song.image})` } : { background: coverGradient(song.id) }}
+                    >
+                      {!song.image && <Music size={14} />}
+                    </div>
+                    <div className="queue-item__info">
+                      <div className="queue-item__title">{song.title}</div>
+                      <div className="queue-item__artist">{song.artist}</div>
+                      <div className={`queue-item__user ${song.isDefault ? "queue-item__user--bar" : ""}`}>
+                        {song.isDefault ? "Del bar" : `@anónimo agregó esta canción`}
+                      </div>
+                    </div>
+                    <span className="queue-item__eta">~{etaMin} min</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* Floating CTA */}
+      <div className="floating-cta">
+        <button
+          className="btn btn--primary btn--xl btn--shadow"
+          onClick={() => navigate("/add-song")}
+        >
+          <Plus size={16} />
+          Agregar canción · $700
+        </button>
       </div>
     </div>
   );
