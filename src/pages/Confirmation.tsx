@@ -74,7 +74,7 @@ const Confirmation = () => {
         songArtist: state.song.artist,
         instagram: instagram.trim(),
         isFree: !!state.isFree,
-      }).catch(() => {});
+      }).catch((err) => console.error("[EmailJS]", err));
     }, 1500);
   };
 
