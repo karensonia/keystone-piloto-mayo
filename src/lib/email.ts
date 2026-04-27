@@ -2,7 +2,7 @@ import emailjs from "@emailjs/browser";
 
 const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_obbd775";
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_vt9kbck";
-const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "ddECizhD8GZOu2djK-f8m";
+const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "QugU4WjkNqq-7Q_YE";
 
 export async function sendSongNotification(params: {
   songTitle: string;
