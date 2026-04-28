@@ -147,11 +147,7 @@ const Confirmation = () => {
         </div>
 
         <div className="screen-footer">
-          <button className="btn btn--primary btn--xl" onClick={() => navigate("/add-song")}>
-            <Music size={16} />
-            Agregar otra canción
-          </button>
-          <button className="btn btn--ghost" onClick={() => navigate("/")}>
+          <button className="btn btn--primary btn--xl" onClick={() => navigate("/")}>
             Volver al inicio
           </button>
         </div>
