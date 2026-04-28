@@ -45,7 +45,7 @@ const Welcome = () => {
           <span className="accent">aquí y ahora</span>?
         </h1>
         <p className="display-sub">
-          Elige tu canción por <strong>$1.000</strong> y hazla sonar en el bar.
+          Elige tu canción y hazla sonar en el bar.
         </p>
         <span className="emotional-tag">
           <Heart size={13} />
