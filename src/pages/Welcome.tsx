@@ -1,5 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { Key, Zap, Music, Heart } from "lucide-react";
+import { Zap, Music, Heart } from "lucide-react";
+
+const GemIcon = () => (
+  <svg width="16" height="15" viewBox="0 0 16 15" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round">
+    <polygon points="8,14 1,5.5 4,1 12,1 15,5.5" />
+    <line x1="1" y1="5.5" x2="15" y2="5.5" />
+    <polyline points="4,1 8,5.5 12,1" />
+  </svg>
+);
 
 const Welcome = () => {
   const navigate = useNavigate();
@@ -25,7 +33,7 @@ const Welcome = () => {
       <header className="home-header">
         <div className="logo">
           <span className="logo-mark">
-            <Key size={16} />
+            <GemIcon />
           </span>
           <span className="logo-text">Keystone</span>
         </div>
