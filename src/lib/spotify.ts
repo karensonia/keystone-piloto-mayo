@@ -40,7 +40,6 @@ export async function getChileTopTracks(token: string, limit: number = 50): Prom
   const params = new URLSearchParams({
     limit: String(Math.min(limit, 50)),
     market: "CL",
-    fields: "items(track(id,name,artists,album(images),duration_ms))",
   });
 
   const response = await fetch(
@@ -49,7 +48,13 @@ export async function getChileTopTracks(token: string, limit: number = 50): Prom
   );
   const data = await response.json();
 
-  return (data.items ?? [])
+  if (!data.items) {
+    console.error("[Spotify] playlist response:", data);
+    return [];
+  }
+
+  return data.items
     .map((item: any) => item.track)
-    .filter((track: any) => track?.id);
+    .filter((track: any) => track?.id)
+    .slice(0, limit);
 }
