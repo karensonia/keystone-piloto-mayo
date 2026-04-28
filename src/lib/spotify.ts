@@ -1,7 +1,6 @@
 const CLIENT_ID = "88f91fc4c45c4dacaf7fa4d7a911c480";
 const CLIENT_SECRET = "4fca9f0c1592478d80744a717537510e";
 
-const CHILE_TOP50_PLAYLIST_ID = "37i9dQZEVXbL0GavIqMTeb";
 
 export async function getSpotifyToken(): Promise<string> {
   const response = await fetch("https://accounts.spotify.com/api/token", {
@@ -36,25 +35,35 @@ export async function searchSpotifyTracks(query: string, token: string, options:
   return data.tracks?.items || [];
 }
 
+const TOP_ARTISTS_CL = [
+  "Bad Bunny", "Karol G", "Feid", "Rauw Alejandro", "Peso Pluma",
+  "Cris MJ", "Paloma Mami", "Mon Laferte", "Shakira", "Maluma",
+  "Myke Towers", "Ozuna", "Duki", "Bizarrap", "Nicki Nicole",
+  "J Balvin", "Anuel AA", "Tiago PZK", "Paulo Londra", "Polima Westcoast",
+  "Jere Klein", "Harry Nach", "Young Cister", "WOS", "Lunay",
+];
+
 export async function getChileTopTracks(token: string, limit: number = 50): Promise<any[]> {
-  const params = new URLSearchParams({
-    limit: String(Math.min(limit, 50)),
-    market: "CL",
-  });
+  const perArtist = Math.ceil(limit / TOP_ARTISTS_CL.length) + 1;
 
-  const response = await fetch(
-    `https://api.spotify.com/v1/playlists/${CHILE_TOP50_PLAYLIST_ID}/tracks?${params.toString()}`,
-    { headers: { Authorization: `Bearer ${token}` } }
+  const results = await Promise.all(
+    TOP_ARTISTS_CL.map((artist) =>
+      searchSpotifyTracks(`artist:"${artist}"`, token, { limit: perArtist, market: "CL" })
+        .catch(() => [] as any[])
+    )
   );
-  const data = await response.json();
 
-  if (!data.items) {
-    console.error("[Spotify] playlist response:", data);
-    return [];
+  const seen = new Set<string>();
+  const tracks: any[] = [];
+
+  for (const artistTracks of results) {
+    for (const track of artistTracks) {
+      if (!track?.id || seen.has(track.id)) continue;
+      seen.add(track.id);
+      tracks.push(track);
+      if (tracks.length >= limit) return tracks;
+    }
   }
 
-  return data.items
-    .map((item: any) => item.track)
-    .filter((track: any) => track?.id)
-    .slice(0, limit);
+  return tracks;
 }
