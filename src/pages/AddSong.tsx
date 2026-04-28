@@ -49,7 +49,7 @@ const AddSong = () => {
       try {
         const t = await getSpotifyToken();
         setToken(t);
-        const tracks = await getChileTopTracks(t, 10);
+        const tracks = await getChileTopTracks(t, 50);
         setPopular(tracks);
       } catch {
         // silently fail
