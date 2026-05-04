@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Info, Instagram, Lock, Heart, Check, Music } from "lucide-react";
 import { sendSongNotification } from "@/lib/email";
+import { addTrackToSpotifyPlaylist } from "@/lib/spotify";
 
 const COVER_GRADIENTS = [
   "linear-gradient(135deg, #ff6a88, #ff99ac)",
@@ -74,7 +75,11 @@ const Confirmation = () => {
         songArtist: state.song.artist,
         instagram: instagram.trim(),
         isFree: !!state.isFree,
+        trackId: state.song.id,
       }).catch((err) => console.error("[EmailJS]", err));
+
+      addTrackToSpotifyPlaylist(state.song.id)
+        .catch((err) => console.error("[Spotify]", err));
     }, 1500);
   };
 

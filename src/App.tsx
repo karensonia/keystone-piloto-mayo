@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import Confirmation from "./pages/Confirmation";
 import NotFound from "./pages/NotFound";
 import AddSong from "./pages/AddSong";
+import SpotifySetup from "./pages/SpotifySetup";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/home" element={<Home />} />
               <Route path="/add-song" element={<AddSong />} />
               <Route path="/confirmation" element={<Confirmation />} />
+              <Route path="/spotify-setup" element={<SpotifySetup />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

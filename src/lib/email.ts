@@ -7,6 +7,7 @@ export async function sendSongNotification(params: {
   songArtist: string;
   instagram: string;
   isFree: boolean;
+  trackId?: string;
 }) {
   const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
     method: "POST",
@@ -21,6 +22,9 @@ export async function sendSongNotification(params: {
         song_artist: params.songArtist,
         instagram: params.instagram || "anónimo",
         price: params.isFree ? "Gratis (primera canción)" : "$1.000 CLP",
+        spotify_link: params.trackId
+          ? `https://open.spotify.com/track/${params.trackId}`
+          : "",
       },
     }),
   });
