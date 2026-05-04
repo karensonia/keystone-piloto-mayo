@@ -1,5 +1,5 @@
-const CLIENT_ID = "a22c3c9e667c4785959e81648a68446f";
-const CLIENT_SECRET = "3605e1d15f2d44bcb27ebde1838356e7";
+const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID as string;
+const CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET as string;
 const PLAYLIST_ID = import.meta.env.VITE_SPOTIFY_PLAYLIST_ID as string | undefined;
 const REFRESH_TOKEN = import.meta.env.VITE_SPOTIFY_REFRESH_TOKEN as string | undefined;
 
