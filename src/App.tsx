@@ -10,6 +10,7 @@ import Confirmation from "./pages/Confirmation";
 import NotFound from "./pages/NotFound";
 import AddSong from "./pages/AddSong";
 import SpotifySetup from "./pages/SpotifySetup";
+import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
               <Route path="/add-song" element={<AddSong />} />
               <Route path="/confirmation" element={<Confirmation />} />
               <Route path="/spotify-setup" element={<SpotifySetup />} />
+              <Route path="/auth-callback" element={<AuthCallback />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
