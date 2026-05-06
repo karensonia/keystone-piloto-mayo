@@ -1120,6 +1120,20 @@ mark {
     vertical-align: top;
 }
 
+.test-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px 14px;
+    background: rgba(34, 229, 138, 0.08);
+    border: 1px solid rgba(34, 229, 138, 0.25);
+    border-radius: var(--radius-md);
+    color: var(--success);
+    font-size: 12px;
+    line-height: 1.5;
+}
+.test-notice svg { flex-shrink: 0; margin-top: 1px; }
+
 .price-clp {
     font-size: 12px;
     -webkit-text-fill-color: var(--text-3);

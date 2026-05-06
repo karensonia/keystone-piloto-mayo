@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Info, Instagram, Lock, Heart, Check, Music } from "lucide-react";
+import { ArrowLeft, Info, Instagram, Lock, Heart, Check, Music, Gift } from "lucide-react";
 import { sendSongNotification } from "@/lib/email";
 import { addTrackToSpotifyPlaylist } from "@/lib/spotify";
 import { trackEvent } from "@/lib/analytics";
@@ -180,6 +180,11 @@ const Confirmation = () => {
             </div>
             <span className="queue-position__value">#{queuePosition}</span>
             <span className="queue-position__eta">Suena en ~{etaMin} min</span>
+          </div>
+
+          <div className="test-notice">
+            <Gift size={14} />
+            <span>Estamos en modo prueba — no se realizará ningún cobro. ¡La canción es un regalo!</span>
           </div>
         </div>
 
