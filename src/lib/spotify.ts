@@ -32,7 +32,17 @@ export async function addTrackToSpotifyPlaylist(trackId: string): Promise<void> 
   }
 }
 
+const TOKEN_CACHE_KEY = "spotify_cc_token";
+const TRACKS_CACHE_KEY = "spotify_top_tracks";
+const TRACKS_TTL_MS = 6 * 60 * 60 * 1000; // 6 horas
+
 export async function getSpotifyToken(): Promise<string> {
+  const cached = localStorage.getItem(TOKEN_CACHE_KEY);
+  if (cached) {
+    const { token, expiresAt } = JSON.parse(cached);
+    if (Date.now() < expiresAt) return token;
+  }
+
   const response = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
     headers: {
@@ -42,6 +52,10 @@ export async function getSpotifyToken(): Promise<string> {
     body: "grant_type=client_credentials",
   });
   const data = await response.json();
+  localStorage.setItem(TOKEN_CACHE_KEY, JSON.stringify({
+    token: data.access_token,
+    expiresAt: Date.now() + 50 * 60 * 1000, // 50 min (margen antes de los 60)
+  }));
   return data.access_token;
 }
 
@@ -74,6 +88,12 @@ const TOP_ARTISTS_CL = [
 ];
 
 export async function getChileTopTracks(token: string, limit: number = 50): Promise<any[]> {
+  const cached = localStorage.getItem(TRACKS_CACHE_KEY);
+  if (cached) {
+    const { tracks, timestamp } = JSON.parse(cached);
+    if (Date.now() - timestamp < TRACKS_TTL_MS) return tracks.slice(0, limit);
+  }
+
   const perArtist = Math.ceil(limit / TOP_ARTISTS_CL.length) + 1;
 
   const results = await Promise.all(
@@ -91,8 +111,12 @@ export async function getChileTopTracks(token: string, limit: number = 50): Prom
       if (!track?.id || seen.has(track.id)) continue;
       seen.add(track.id);
       tracks.push(track);
-      if (tracks.length >= limit) return tracks;
+      if (tracks.length >= limit) break;
     }
+  }
+
+  if (tracks.length > 0) {
+    localStorage.setItem(TRACKS_CACHE_KEY, JSON.stringify({ tracks, timestamp: Date.now() }));
   }
 
   return tracks;
