@@ -3,6 +3,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Info, Instagram, Lock, Heart, Check, Music } from "lucide-react";
 import { sendSongNotification } from "@/lib/email";
 import { addTrackToSpotifyPlaylist } from "@/lib/spotify";
+import { trackEvent } from "@/lib/analytics";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const COVER_GRADIENTS = [
   "linear-gradient(135deg, #ff6a88, #ff99ac)",
@@ -34,6 +42,30 @@ const Confirmation = () => {
   const [phase, setPhase] = useState<Phase>("confirm");
   const [instagram, setInstagram] = useState("");
   const [queuePosition, setQueuePosition] = useState(state?.position ?? 1);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelOther, setCancelOther] = useState("");
+
+  const CANCEL_REASONS: { label: string; key: string }[] = [
+    { label: "El precio es muy alto",        key: "price_too_high" },
+    { label: "No era la canción que buscaba", key: "wrong_song" },
+    { label: "Solo estaba explorando",        key: "just_exploring" },
+    { label: "Cambié de opinión",             key: "changed_mind" },
+    { label: "Otro motivo",                   key: "other" },
+  ];
+
+  const handleCancelConfirm = () => {
+    const selected = CANCEL_REASONS.find((r) => r.label === cancelReason);
+    trackEvent("confirmation_cancelled", {
+      reason_key: selected?.key ?? "unknown",
+      reason_label: cancelReason,
+      ...(selected?.key === "other" && cancelOther.trim()
+        ? { reason_other: cancelOther.trim() }
+        : {}),
+    });
+    setShowCancelModal(false);
+    navigate("/");
+  };
 
   useEffect(() => {
     if (!state?.song) navigate("/home");
@@ -246,7 +278,79 @@ const Confirmation = () => {
           <Lock size={11} />
           Pago seguro · Tu canción suena garantizada
         </p>
+        <button
+          className="btn btn--ghost cancel-btn"
+          onClick={() => setShowCancelModal(true)}
+          disabled={phase === "paying"}
+        >
+          Cancelar
+        </button>
       </div>
+
+      <Dialog open={showCancelModal} onOpenChange={setShowCancelModal}>
+        <DialogContent
+          className="cancel-modal"
+          style={{
+            background: "var(--bg-1)",
+            border: "1px solid var(--border-strong)",
+            borderRadius: "var(--radius-xl)",
+            color: "var(--text-0)",
+            maxWidth: "min(420px, 92vw)",
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle style={{ color: "var(--text-0)", fontSize: "18px", fontWeight: 700 }}>
+              ¿Por qué no quieres continuar?
+            </DialogTitle>
+            <DialogDescription style={{ color: "var(--text-2)", fontSize: "13px" }}>
+              Tu opinión nos ayuda a mejorar
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="cancel-reasons">
+            {CANCEL_REASONS.map((reason) => (
+              <button
+                key={reason.key}
+                className={`cancel-reason-chip${cancelReason === reason.label ? " active" : ""}`}
+                onClick={() => {
+                  setCancelReason(reason.label);
+                  if (reason.key !== "other") setCancelOther("");
+                }}
+              >
+                {reason.label}
+              </button>
+            ))}
+          </div>
+
+          {cancelReason === "Otro motivo" && (
+            <textarea
+              className="cancel-other-input"
+              placeholder="Cuéntanos más..."
+              value={cancelOther}
+              onChange={(e) => setCancelOther(e.target.value)}
+              rows={3}
+            />
+          )}
+
+          <div className="cancel-modal-footer">
+            <button
+              className="btn btn--primary"
+              style={{ height: "48px", borderRadius: "var(--radius-md)", fontSize: "15px" }}
+              onClick={handleCancelConfirm}
+              disabled={!cancelReason || (cancelReason === "Otro motivo" && !cancelOther.trim())}
+            >
+              Confirmar
+            </button>
+            <button
+              className="btn btn--ghost"
+              style={{ fontSize: "14px" }}
+              onClick={() => setShowCancelModal(false)}
+            >
+              Volver al pago
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

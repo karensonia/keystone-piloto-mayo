@@ -1337,6 +1337,78 @@ mark {
 }
 
 /* =========================================================
+   Cancel modal
+   ========================================================= */
+.cancel-btn {
+    font-size: 13px;
+    height: 36px;
+    color: var(--text-3);
+}
+.cancel-btn:hover { color: var(--text-2); }
+
+.cancel-reasons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.cancel-reason-chip {
+    width: 100%;
+    padding: 11px 16px;
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-1);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.cancel-reason-chip:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-strong);
+}
+.cancel-reason-chip.active {
+    background: rgba(0, 212, 255, 0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.cancel-other-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    color: var(--text-0);
+    font-size: 14px;
+    padding: 12px 14px;
+    resize: none;
+    outline: none;
+    font-family: inherit;
+    line-height: 1.5;
+    transition: border-color 0.15s;
+}
+.cancel-other-input::placeholder { color: var(--text-3); }
+.cancel-other-input:focus { border-color: var(--accent); }
+
+.cancel-modal-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+.cancel-modal-footer .btn--primary {
+    width: 100%;
+}
+.cancel-modal-footer .btn--primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* =========================================================
    Scrollbar
    ========================================================= */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
