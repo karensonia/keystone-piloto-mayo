@@ -99,7 +99,11 @@ const Confirmation = () => {
       const v = parseInt(localStorage.getItem(visitorsKey) || "0") + 1;
       localStorage.setItem(visitorsKey, String(v));
 
-      setQueuePosition(updated.length);
+      const today = new Date().toDateString();
+      const todayCount = updated.filter(
+        (s) => new Date(s.addedAt).toDateString() === today
+      ).length;
+      setQueuePosition(todayCount);
       setPhase("success");
 
       sendSongNotification({
@@ -137,7 +141,6 @@ const Confirmation = () => {
   if (!state?.song) return null;
 
   const amount = state.isFree ? 0 : 1000;
-  const etaMin = Math.max(1, Math.floor((queuePosition - 1) * 3.5));
   const coverStyle = state.song.image
     ? { backgroundImage: `url(${state.song.image})` }
     : { background: coverGradient(state.song.id) };
@@ -179,7 +182,6 @@ const Confirmation = () => {
               <span className="queue-position__label">Tu posición en la cola</span>
             </div>
             <span className="queue-position__value">#{queuePosition}</span>
-            <span className="queue-position__eta">Suena en ~{etaMin} min</span>
           </div>
 
           <div className="test-notice">
